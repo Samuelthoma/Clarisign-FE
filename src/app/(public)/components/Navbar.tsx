@@ -1,10 +1,26 @@
 "use client";
 
+import { useEffect } from "react";
+
 export default function Navbar() {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
+
+  const sections = ["home", "features", "how-it-works", "contact"];
+
+  useEffect(() => {
+    let index = 0;
+
+    const interval = setInterval(() => {
+      scrollTo(sections[index]);
+
+      index = (index + 1) % sections.length;
+    }, 7000); 
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
@@ -18,16 +34,22 @@ export default function Navbar() {
             Home
           </button>
           <button
-            onClick={() => scrollTo("about")}
+            onClick={() => scrollTo("features")}
             className="hover:text-blue-600"
           >
-            About Us
+            Features
+          </button>
+          <button
+            onClick={() => scrollTo("how-it-works")}
+            className="hover:text-blue-600"
+          >
+            How It Works
           </button>
           <button
             onClick={() => scrollTo("contact")}
             className="hover:text-blue-600"
           >
-            Contact
+            Contact Us
           </button>
         </div>
 

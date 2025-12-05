@@ -1,14 +1,20 @@
 import Navbar from "./components/Navbar";
 import "../../styles/globals.css";
+
+import HomeSection from "./components/Home";
+import FeaturesSection from "./components/Features";
+
 import ContactSection from "./components/Contact";
-import About from "./components/About";
 import Footer from "./components/Footer";
+import HowItWorkSection from "./components/HowItWork";
 
 export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <About />
+      <HomeSection />
+      <FeaturesSection />
+      <HowItWorkSection />
       <ContactSection />
       <Footer />
     </>
