@@ -55,7 +55,7 @@ export default function Navbar() {
 
         <div className="flex gap-6">
           <button className="bg-gray-200 px-3 py-1 rounded-sm border border-gray-600 text-sm">
-            Sign-in
+            <a href="/login">Sign-in</a>
           </button>
           <button className="bg-black px-3 py-1 rounded-sm border-white text-sm text-white">
             Register
