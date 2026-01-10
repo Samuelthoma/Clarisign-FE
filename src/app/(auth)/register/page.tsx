@@ -17,14 +17,12 @@ export default function RegisterPage() {
 
   const [registerData, setRegisterData] = useState({
     email: "",
-    username: "",
-    password: "",
   });
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-muted/60 via-background to-background">
-      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-4xl w-full h-[520px]">
-        <div className="w-1/2 p-8 flex flex-col justify-center">
+      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-2xl w-full h-[520px]">
+        <div className="w-full p-8 flex flex-col justify-center">
           {currentStep === 0 && (
             <AccountStep
               onNext={(data) => {
@@ -34,19 +32,16 @@ export default function RegisterPage() {
             />
           )}
 
-          {currentStep === 1 && <OtpStep email={registerData.email} />}
+          {currentStep === 1 && (
+            <OtpStep
+              onNext={() => setCurrentStep(2)}
+              email={registerData.email}
+            />
+          )}
           {currentStep === 2 && <IdUploadStep />}
           {currentStep === 3 && <IdValidationStep />}
           {currentStep === 4 && <LivenessDetectionStep />}
           {currentStep === 5 && <VerificationPendingStep />}
-        </div>
-
-        <div className="w-1/2 bg-muted border-l border-border/60">
-          <img
-            src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200"
-            alt="Office documents"
-            className="w-full h-full object-cover"
-          />
         </div>
       </div>
 

@@ -10,7 +10,7 @@ export default function IdUploadStep() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    console.log("Selected file:", file); // ✅ you WILL see this
+    console.log("Selected file:", file); 
 
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);

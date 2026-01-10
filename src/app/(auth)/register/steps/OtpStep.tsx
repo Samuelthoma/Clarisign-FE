@@ -1,12 +1,25 @@
-'use client';
+"use client";
 
-import React, { useRef } from "react";
+import { registerApi, verifyOtpApi } from "@/lib/api/AuthApi";
+import React, { useRef, useState } from "react";
 
-export default function OtpStep({ email }: { email: string }) {
+type OtpStepProps = {
+  email: string;
+  onNext: () => void;
+};
+
+export default function OtpStep({ email, onNext }: OtpStepProps) {
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [error, setError] = useState("");
+
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
 
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
@@ -28,7 +41,10 @@ export default function OtpStep({ email }: { email: string }) {
 
     if (!/^\d+$/.test(paste)) return;
 
-    paste.split("").forEach((char, index) => {
+    const newOtp = paste.split("");
+    setOtp(newOtp);
+
+    newOtp.forEach((char, index) => {
       const input = inputsRef.current[index];
       if (input) {
         input.value = char;
@@ -36,6 +52,31 @@ export default function OtpStep({ email }: { email: string }) {
     });
 
     inputsRef.current[Math.min(paste.length, 6) - 1]?.focus();
+  };
+
+  const resendOtp = async () => {
+    try {
+      setError("");
+      await registerApi(email);
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
+  const verifyOtp = async () => {
+    const otpValue = otp.join("");
+
+    try {
+      setError("");
+      const res = await verifyOtpApi(email, otpValue);
+      if (res.code == 200) {
+        onNext();
+      } else {
+        setError(res.message);
+      }
+    } catch (error: any) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -46,15 +87,22 @@ export default function OtpStep({ email }: { email: string }) {
 
       <p className="text-sm text-muted-foreground mb-6">
         We've sent a 6-digit verification code to{" "}
-        <span className="font-medium text-foreground">{email}</span>.
-        Please enter the code below to continue.
+        <span className="font-medium text-foreground">{email}</span>. Please
+        enter the code below to continue.
       </p>
+
+      <div className="pb-4">
+        {error && <p className="text-sm text-red-500">{error}</p>}
+      </div>
 
       <div className="flex justify-between gap-3 mb-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <input
             key={i}
-            ref={(el) => {inputsRef.current[i] = el}}
+            ref={(el) => {
+              inputsRef.current[i] = el;
+            }}
+            value={otp[i]}
             type="text"
             inputMode="numeric"
             maxLength={1}
@@ -76,6 +124,7 @@ export default function OtpStep({ email }: { email: string }) {
 
       <div className="space-y-4">
         <button
+          onClick={() => verifyOtp()}
           type="button"
           className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors"
         >
@@ -86,6 +135,7 @@ export default function OtpStep({ email }: { email: string }) {
           Didn’t receive the code?{" "}
           <button
             type="button"
+            onClick={() => resendOtp()}
             className="text-primary font-medium underline underline-offset-2 hover:text-primary/90"
           >
             Resend code
