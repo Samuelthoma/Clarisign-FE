@@ -1,16 +1,29 @@
 "use client";
 
 import { registerApi, verifyOtpApi } from "@/lib/api/AuthApi";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type OtpStepProps = {
   email: string;
   onNext: () => void;
 };
 
+const RESEND_OTP_COOLDOWN = 60;
+
 export default function OtpStep({ email, onNext }: OtpStepProps) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [error, setError] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(RESEND_OTP_COOLDOWN);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -58,6 +71,7 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
     try {
       setError("");
       await registerApi(email);
+      setResendCooldown(RESEND_OTP_COOLDOWN);
     } catch (error: any) {
       setError(error.message);
     }
@@ -135,10 +149,14 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
           Didn’t receive the code?{" "}
           <button
             type="button"
+            disabled={resendCooldown > 0}
             onClick={() => resendOtp()}
             className="text-primary font-medium underline underline-offset-2 hover:text-primary/90"
           >
-            Resend code
+            {resendCooldown > 0 
+              ? `Resend in 00:${resendCooldown.toString().padStart(2, "0")}` 
+              : "Resend code"
+            }
           </button>
         </p>
       </div>

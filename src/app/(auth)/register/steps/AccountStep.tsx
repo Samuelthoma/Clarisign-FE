@@ -29,7 +29,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
       </h2>
 
       <p className="text-sm text-muted-foreground mb-8">
-        Enter your account details to get started.
+        We’ll start by verifying your email address.
       </p>
 
       <form className="w-full space-y-6" onSubmit={handleSubmit}>
@@ -38,14 +38,14 @@ export default function AccountStep({ onNext }: AccountStepProps) {
             htmlFor="email"
             className="block text-foreground/80 text-sm font-medium mb-1"
           >
-            Email
+            Email address
           </label>
           <input
             id="email"
             type="email"
             required
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your work email"
+            placeholder="name@company.com"
             autoComplete="email"
             className="w-full py-2 bg-transparent border-b-2 border-muted-foreground/40 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors"
           />
@@ -59,7 +59,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
             type="submit"
             className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors"
           >
-            Send OTP
+            Send Verification Code
           </button>
         </div>
       </form>

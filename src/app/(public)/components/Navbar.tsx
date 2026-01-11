@@ -17,7 +17,7 @@ export default function Navbar() {
       scrollTo(sections[index]);
 
       index = (index + 1) % sections.length;
-    }, 7000); 
+    }, 7000);
 
     return () => clearInterval(interval);
   }, []);
@@ -58,7 +58,7 @@ export default function Navbar() {
             <a href="/login">Sign-in</a>
           </button>
           <button className="bg-black px-3 py-1 rounded-sm border-white text-sm text-white">
-            Register
+            <a href="/register">Register</a>
           </button>
         </div>
       </div>
