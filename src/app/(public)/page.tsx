@@ -1,5 +1,5 @@
 import Navbar from "./components/Navbar";
-import "../../styles/globals.css";
+import "@/src/styles/globals.css";
 
 import HomeSection from "./components/Home";
 import FeaturesSection from "./components/Features";

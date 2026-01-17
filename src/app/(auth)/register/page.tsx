@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import "../../../styles/globals.css";
+import "@/src/styles/globals.css";
 
 import AccountStep from "./steps/AccountStep";
 import OtpStep from "./steps/OtpStep";
