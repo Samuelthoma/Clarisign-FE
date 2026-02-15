@@ -1,9 +1,15 @@
-import DraftWorkspace from "@/src/modules/document/components/draft-workspace";
+"use client";
 
-export default function Workspace(){
-    return (
-        <>
-            <DraftWorkspace/>
-        </>
-    )
+import DraftWorkspace from "@/src/modules/document/components/draft-workspace";
+import { useParams } from "next/navigation";
+
+export default function Workspace() {
+  const params = useParams();
+  const documentId = params.id as string;
+
+  return (
+    <>
+      <DraftWorkspace documentId={documentId} />
+    </>
+  );
 }

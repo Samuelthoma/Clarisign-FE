@@ -1,13 +1,19 @@
 interface ViewerProps {
   activeTool: string | null;
+  fileUrl: string | null;
 }
 
-export default function Viewer({activeTool} : ViewerProps) {
-  return (
-    <div className="relative w-[800px] h-[1100px] bg-white border shadow-md">
-      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-        Document Viewer Placeholder
+export default function Viewer({fileUrl} : ViewerProps) {
+  if(!fileUrl){
+    return (
+      <div className="bg-white shadow rounded w-[800px] h-[1100px] flex items-center justify-center">
+        Loading Document
       </div>
+    )
+  }
+  return (
+    <div className="bg-white shadow rounded overflow-hidden">
+      <iframe src={fileUrl} className="w-[800px] h-[1100px]"></iframe>
     </div>
   );
 }
