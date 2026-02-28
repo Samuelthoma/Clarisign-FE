@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import {
   ChevronLeft,
@@ -8,16 +8,20 @@ import {
   ZoomIn,
   ZoomOut,
   FileText,
-  FileQuestion,
-  ArrowLeft,
 } from "lucide-react";
 import Skeleton from "@mui/material/Skeleton";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import { DraftField, FieldType } from "../../types";
+import { FIELD_CONFIG } from "../../field-config";
 
 interface ViewerProps {
   fileUrl: string | null;
   isLoading?: boolean;
+  fields: DraftField[];
+  onCreateField: (type: FieldType, x: number, y: number, page: number) => void;
+  onMoveField: (id: string, x: number, y: number) => void;
+  onRemoveField: (id: string) => void;
 }
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -65,10 +69,21 @@ function DocumentSkeleton() {
   );
 }
 
-export default function Viewer({ fileUrl, isLoading = false }: ViewerProps) {
+export default function Viewer({
+  fileUrl,
+  isLoading = false,
+  fields,
+  onCreateField,
+  onMoveField,
+  onRemoveField,
+}: ViewerProps) {
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  const pageContainerRef = useRef<HTMLDivElement | null>(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
@@ -85,6 +100,75 @@ export default function Viewer({ fileUrl, isLoading = false }: ViewerProps) {
 
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 2));
   const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.6));
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    const type = e.dataTransfer.getData("field-type") as FieldType;
+    if (!type || !pageContainerRef.current) return;
+
+    const rect = pageContainerRef.current.getBoundingClientRect();
+
+    const rawX = (e.clientX - rect.left) / scale;
+    const rawY = (e.clientY - rect.top) / scale;
+
+    const config = FIELD_CONFIG[type];
+
+    const pageWidth = rect.width / scale;
+    const pageHeight = rect.height / scale;
+
+    const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
+    const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
+
+    onCreateField(type, clampedX, clampedY, pageNumber);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!draggingId || !pageContainerRef.current) return;
+
+      const rect = pageContainerRef.current.getBoundingClientRect();
+
+      const mouseX = (e.clientX - rect.left) / scale;
+      const mouseY = (e.clientY - rect.top) / scale;
+
+      const field = fields.find((f) => f.id === draggingId);
+      if (!field) return;
+
+      const newX = mouseX - offsetRef.current.x;
+      const newY = mouseY - offsetRef.current.y;
+
+      const pageWidth = rect.width / scale;
+      const pageHeight = rect.height / scale;
+
+      const clampedX = Math.max(0, Math.min(newX, pageWidth - field.width));
+
+      const clampedY = Math.max(0, Math.min(newY, pageHeight - field.height));
+
+      onMoveField(draggingId, clampedX, clampedY);
+    };
+
+    const handleMouseUp = () => {
+      setDraggingId(null);
+      document.body.style.userSelect = "";
+    };
+
+    if (draggingId) {
+      document.body.style.userSelect = "none";
+    }
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [draggingId, scale, fields, onMoveField]);
 
   return (
     <div className="flex flex-col w-full h-full bg-[#f4f6f8] overflow-hidden">
@@ -159,13 +243,62 @@ export default function Viewer({ fileUrl, isLoading = false }: ViewerProps) {
                   </div>
                 }
               >
-                <div className="relative border border-gray-200 bg-white min-h-[1100px]">
+                <div
+                  ref={pageContainerRef}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  className="relative border border-gray-200 bg-white max-h-[1100px]"
+                >
                   <Page
                     pageNumber={pageNumber}
                     scale={scale}
                     className="block"
                     loading={<DocumentSkeleton />}
                   />
+
+                  {fields
+                    .filter((field) => field.page === pageNumber)
+                    .map((field) => (
+                      <div
+                        key={field.id}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          if (!pageContainerRef.current) return;
+
+                          const rect =
+                            pageContainerRef.current.getBoundingClientRect();
+                          const mouseX = (e.clientX - rect.left) / scale;
+                          const mouseY = (e.clientY - rect.top) / scale;
+
+                          offsetRef.current = {
+                            x: mouseX - field.x,
+                            y: mouseY - field.y,
+                          };
+
+                          setDraggingId(field.id);
+                        }}
+                        className="absolute border-2 border-blue-600 bg-blue-100/50 z-20"
+                        style={{
+                          left: field.x * scale,
+                          top: field.y * scale,
+                          width: field.width * scale,
+                          height: field.height * scale,
+                        }}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveField(field.id);
+                          }}
+                          className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center shadow hover:scale-110 transition"
+                        >
+                          ×
+                        </button>
+                        <div className="text-xs text-center mt-1">
+                          {field.type}
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </Document>
             )}

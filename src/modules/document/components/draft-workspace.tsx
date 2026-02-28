@@ -7,6 +7,8 @@ import RightPanel from "./panels/right-panel";
 import { getDocumentFileApi } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
 import { ArrowLeft, FileQuestion } from "lucide-react";
+import { DraftField, FieldType } from "../types";
+import { FIELD_CONFIG } from "../field-config";
 
 interface Props {
   documentId: string;
@@ -15,9 +17,41 @@ interface Props {
 const Viewer = dynamic(() => import("./panels/viewer"), { ssr: false });
 
 export default function DraftWorkspace({ documentId }: Props) {
-  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<FieldType | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [fields, setFields] = useState<DraftField[]>([]);
+
+  const handleCreateField = (
+    type: FieldType,
+    x: number,
+    y: number,
+    page: number,
+  ) => {
+    const config = FIELD_CONFIG[type];
+
+    const newField: DraftField = {
+      id: crypto.randomUUID(),
+      type,
+      x,
+      y,
+      height: config.height,
+      width: config.width,
+      page,
+    };
+
+    setFields((prev) => [...prev, newField]);
+  };
+
+  const handleMoveField = (id: string, x: number, y: number) => {
+    setFields((prev) =>
+      prev.map((field) => (field.id == id ? { ...field, x, y } : field)),
+    );
+  };
+
+  const handleRemoveField = (id: string) => {
+    setFields((prev) => prev.filter((field) => field.id !== id));
+  };
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -70,7 +104,16 @@ export default function DraftWorkspace({ documentId }: Props) {
           left={
             <LeftPanel activeTool={activeTool} setActiveTool={setActiveTool} />
           }
-          center={<Viewer fileUrl={fileUrl} isLoading={isLoading} />}
+          center={
+            <Viewer
+              fileUrl={fileUrl}
+              isLoading={isLoading}
+              fields={fields}
+              onCreateField={handleCreateField}
+              onMoveField={handleMoveField}
+              onRemoveField={handleRemoveField}
+            />
+          }
           right={<RightPanel />}
         />
       )}
