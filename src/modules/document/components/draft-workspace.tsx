@@ -53,6 +53,14 @@ export default function DraftWorkspace({ documentId }: Props) {
     setFields((prev) => prev.filter((field) => field.id !== id));
   };
 
+  const handleResizeField = (id: string, width: number, height: number) => {
+    setFields((prev) =>
+      prev.map((field) =>
+        field.id === id ? { ...field, width, height } : field,
+      ),
+    );
+  };
+
   useEffect(() => {
     const fetchDocument = async () => {
       setIsLoading(true);
@@ -112,6 +120,7 @@ export default function DraftWorkspace({ documentId }: Props) {
               onCreateField={handleCreateField}
               onMoveField={handleMoveField}
               onRemoveField={handleRemoveField}
+              onResizeField={handleResizeField}
             />
           }
           right={<RightPanel />}
