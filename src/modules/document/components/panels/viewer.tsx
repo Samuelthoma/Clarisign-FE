@@ -15,6 +15,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DraftField, FieldType } from "../../types";
 import { FIELD_CONFIG } from "../../field-config";
+import { useFieldInteraction } from "../../hooks/useFieldInteraction";
 
 interface ViewerProps {
   fileUrl: string | null;
@@ -83,18 +84,10 @@ export default function Viewer({
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [resizingId, setResizingId] = useState<string | null>(null);
 
   const pageContainerRef = useRef<HTMLDivElement | null>(null);
-  const offsetRef = useRef({ x: 0, y: 0 });
-  const resizeStartRef = useRef({
-    startX: 0,
-    startY: 0,
-    startWidth: 0,
-    startHeight: 0,
-  });
 
+  // Document Action
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
     setPageNumber(1);
@@ -111,6 +104,7 @@ export default function Viewer({
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 2));
   const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.6));
 
+  // Signature Field Action
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
@@ -137,77 +131,13 @@ export default function Viewer({
     e.preventDefault();
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!pageContainerRef.current) return;
-
-      const rect = pageContainerRef.current.getBoundingClientRect();
-
-      if (resizingId) {
-        const field = fields.find((f) => f.id === resizingId);
-        if (!field) return;
-
-        const dx = (e.clientX - resizeStartRef.current.startX) / scale;
-        const dy = (e.clientY - resizeStartRef.current.startY) / scale;
-
-        const config = FIELD_CONFIG[field.type];
-
-        let newWidth = resizeStartRef.current.startWidth + dx;
-        let newHeight = resizeStartRef.current.startHeight + dy;
-
-        newWidth = Math.max(config.minWidth, newWidth);
-        newHeight = Math.max(config.minHeight, newHeight);
-
-        const pageWidth = rect.width / scale;
-        const pageHeight = rect.height / scale;
-
-        newWidth = Math.min(newWidth, pageWidth - field.x);
-
-        newHeight = Math.min(newHeight, pageHeight - field.y);
-
-        onResizeField(resizingId, newWidth, newHeight);
-        return;
-      }
-
-      if (draggingId) {
-        const field = fields.find((f) => f.id === draggingId);
-        if (!field) return;
-
-        const mouseX = (e.clientX - rect.left) / scale;
-        const mouseY = (e.clientY - rect.top) / scale;
-
-        const newX = mouseX - offsetRef.current.x;
-        const newY = mouseY - offsetRef.current.y;
-
-        const pageWidth = rect.width / scale;
-        const pageHeight = rect.height / scale;
-
-        const clampedX = Math.max(0, Math.min(newX, pageWidth - field.width));
-
-        const clampedY = Math.max(0, Math.min(newY, pageHeight - field.height));
-
-        onMoveField(draggingId, clampedX, clampedY);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setDraggingId(null);
-      setResizingId(null);
-      document.body.style.userSelect = "";
-    };
-
-    if (draggingId || resizingId) {
-      document.body.style.userSelect = "none";
-    }
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [draggingId, resizingId, scale, fields]);
+  const { startMove, startResize } = useFieldInteraction({
+    fields,
+    scale,
+    pageContainerRef,
+    onMoveField,
+    onResizeField,
+  });
 
   return (
     <div className="flex flex-col w-full h-full bg-[#f4f6f8] overflow-hidden">
@@ -300,24 +230,8 @@ export default function Viewer({
                     .map((field) => (
                       <div
                         key={field.id}
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          if (!pageContainerRef.current) return;
-
-                          const rect =
-                            pageContainerRef.current.getBoundingClientRect();
-                          const mouseX = (e.clientX - rect.left) / scale;
-                          const mouseY = (e.clientY - rect.top) / scale;
-
-                          offsetRef.current = {
-                            x: mouseX - field.x,
-                            y: mouseY - field.y,
-                          };
-
-                          setDraggingId(field.id);
-                        }}
-                        className="absolute border border-blue-500 bg-blue-50/40 
-           rounded-md z-20 group transition"
+                        onMouseDown={(e) => startMove(e, field)}
+                        className="absolute border border-blue-500 bg-blue-50/40 rounded-md z-20 group transition"
                         style={{
                           left: field.x * scale,
                           top: field.y * scale,
@@ -326,27 +240,8 @@ export default function Viewer({
                         }}
                       >
                         <div
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-
-                            resizeStartRef.current = {
-                              startX: e.clientX,
-                              startY: e.clientY,
-                              startWidth: field.width,
-                              startHeight: field.height,
-                            };
-
-                            setResizingId(field.id);
-                          }}
-                          className="
-    absolute bottom-1 right-1
-    w-4 h-4
-    flex items-center justify-center
-    text-blue-600
-    opacity-0 group-hover:opacity-100
-    transition-opacity
-    cursor-se-resize
-  "
+                          onMouseDown={(e) => startResize(e, field)}
+                          className="absolute bottom-1 right-1 w-4 h-4 flex items-center justify-center text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-se-resize"
                         >
                           <ImageUpscale size={14} />
                         </div>
@@ -355,27 +250,11 @@ export default function Viewer({
                             e.stopPropagation();
                             onRemoveField(field.id);
                           }}
-                          className="
-    absolute -top-2 -right-2
-    w-5 h-5
-    flex items-center justify-center
-    rounded-full
-    bg-white
-    text-gray-500
-    border border-gray-200
-    shadow-sm
-    opacity-0 group-hover:opacity-100
-    transition-all
-    hover:bg-red-50
-    hover:text-red-600
-  "
+                          className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white text-gray-500 border border-gray-200 shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:text-red-600"
                         >
                           ×
                         </button>
-                        <div
-                          className="text-[10px] font-medium text-gray-600 
-                select-none pointer-events-none"
-                        >
+                        <div className="text-[10px] font-medium text-gray-600 select-none pointer-events-none">
                           {field.type}
                         </div>
                       </div>
