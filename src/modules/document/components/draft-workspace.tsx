@@ -7,8 +7,8 @@ import RightPanel from "./panels/right-panel";
 import { getDocumentFileApi } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
 import { ArrowLeft, FileQuestion } from "lucide-react";
-import { DraftField, FieldType } from "../types";
-import { FIELD_CONFIG } from "../field-config";
+import { DraftField, FieldType, SignatureMode, Signer } from "../types";
+import SignatureAssignmentModal from "./signature-assignment-modal";
 
 interface Props {
   documentId: string;
@@ -21,26 +21,65 @@ export default function DraftWorkspace({ documentId }: Props) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [fields, setFields] = useState<DraftField[]>([]);
+  const [signers, setSigners] = useState<Signer[]>([
+    {
+      id: "signer-1",
+      name: "John Doe",
+      email: "john@example.com",
+      order: 1,
+      status: "DRAFT",
+      color: "#2563eb",
+    },
+    {
+      id: "signer-2",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      order: 2,
+      status: "DRAFT",
+      color: "#16a34a",
+    },
+  ]);
+  const [pendingPosition, setPendingPosition] = useState<{
+    x: number;
+    y: number;
+    page: number;
+    mode: SignatureMode;
+  } | null>(null);
+
+  useEffect(() => {
+    console.log(fields);
+  }, [fields]);
+
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   const handleCreateField = (
-    type: FieldType,
     x: number,
     y: number,
     page: number,
+    mode: SignatureMode,
   ) => {
-    const config = FIELD_CONFIG[type];
+    setPendingPosition({ x, y, page, mode });
+    setIsAssignmentModalOpen(true);
+  };
+
+  const confirmSignatureField = (signerId: string) => {
+    if (!pendingPosition) return;
 
     const newField: DraftField = {
       id: crypto.randomUUID(),
-      type,
-      x,
-      y,
-      height: config.height,
-      width: config.width,
-      page,
+      type: "SIGNATURE",
+      mode: pendingPosition.mode,
+      signerId,
+      x: pendingPosition.x,
+      y: pendingPosition.y,
+      page: pendingPosition.page,
+      width: 180,
+      height: 60,
     };
 
     setFields((prev) => [...prev, newField]);
+    setPendingPosition(null);
+    setIsAssignmentModalOpen(false);
   };
 
   const handleMoveField = (id: string, x: number, y: number) => {
@@ -126,6 +165,15 @@ export default function DraftWorkspace({ documentId }: Props) {
           right={<RightPanel />}
         />
       )}
+      <SignatureAssignmentModal
+        isOpen={isAssignmentModalOpen}
+        signers={signers}
+        onClose={() => {
+          setPendingPosition(null);
+          setIsAssignmentModalOpen(false);
+        }}
+        onConfirm={confirmSignatureField}
+      />
     </div>
   );
 }

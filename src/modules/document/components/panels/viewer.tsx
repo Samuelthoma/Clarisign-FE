@@ -13,7 +13,7 @@ import {
 import Skeleton from "@mui/material/Skeleton";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { DraftField, FieldType } from "../../types";
+import { DraftField, FieldType, SignatureMode } from "../../types";
 import { FIELD_CONFIG } from "../../field-config";
 import { useFieldInteraction } from "../../hooks/useFieldInteraction";
 
@@ -21,7 +21,7 @@ interface ViewerProps {
   fileUrl: string | null;
   isLoading?: boolean;
   fields: DraftField[];
-  onCreateField: (type: FieldType, x: number, y: number, page: number) => void;
+  onCreateField: (clampedX: number, clampedY: number, page: number, mode: SignatureMode) => void;
   onMoveField: (id: string, x: number, y: number) => void;
   onRemoveField: (id: string) => void;
   onResizeField: (id: string, width: number, height: number) => void;
@@ -108,15 +108,15 @@ export default function Viewer({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
-    const type = e.dataTransfer.getData("field-type") as FieldType;
-    if (!type || !pageContainerRef.current) return;
+    const mode = e.dataTransfer.getData("signature-mode") as SignatureMode;
+    if (!mode || !pageContainerRef.current) return;
 
     const rect = pageContainerRef.current.getBoundingClientRect();
 
     const rawX = (e.clientX - rect.left) / scale;
     const rawY = (e.clientY - rect.top) / scale;
 
-    const config = FIELD_CONFIG[type];
+    const config = FIELD_CONFIG["SIGNATURE"];
 
     const pageWidth = rect.width / scale;
     const pageHeight = rect.height / scale;
@@ -124,7 +124,7 @@ export default function Viewer({
     const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
     const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
 
-    onCreateField(type, clampedX, clampedY, pageNumber);
+    onCreateField(clampedX, clampedY, pageNumber, mode);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -255,7 +255,7 @@ export default function Viewer({
                           ×
                         </button>
                         <div className="text-[10px] font-medium text-gray-600 select-none pointer-events-none">
-                          {field.type}
+                          {field.mode}
                         </div>
                       </div>
                     ))}

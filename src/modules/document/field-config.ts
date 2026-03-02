@@ -16,12 +16,5 @@ export const FIELD_CONFIG: Record<
     minWidth: 60,
     minHeight: 40,
     resizable: true,
-  },
-  TEXT: {
-    width: 200,
-    height: 40,
-    minWidth: 120,
-    minHeight: 30,
-    resizable: true,
-  },
+  }
 };

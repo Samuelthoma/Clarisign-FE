@@ -1,5 +1,5 @@
 import { Signature, Type } from "lucide-react";
-import { FieldType } from "../../types";
+import { FieldType, SignatureMode } from "../../types";
 
 interface LeftPanelProps {
   activeTool: FieldType | null;
@@ -12,9 +12,9 @@ export default function LeftPanel({
 }: LeftPanelProps) {
   const handleDragStart = (
     e: React.DragEvent<HTMLButtonElement>,
-    type: FieldType,
+    mode: SignatureMode,
   ) => {
-    e.dataTransfer.setData("field-type", type);
+    e.dataTransfer.setData("signature-mode", mode);
     e.dataTransfer.effectAllowed = "copy";
   };
 
@@ -28,12 +28,7 @@ export default function LeftPanel({
         <div className="space-y-2">
           <button
             draggable
-            onClick={() =>
-              setActiveTool(activeTool === "SIGNATURE" ? null : "SIGNATURE")
-            }
-            onDragStart={(e) => {
-              handleDragStart(e, "SIGNATURE");
-            }}
+            onDragStart={(e) => handleDragStart(e, "DRAW")}
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition
               ${
                 activeTool === "SIGNATURE"
@@ -47,16 +42,8 @@ export default function LeftPanel({
 
           <button
             draggable
-            onClick={() => setActiveTool(activeTool === "TEXT" ? null : "TEXT")}
-            onDragStart={(e) => {
-              handleDragStart(e, "TEXT");
-            }}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition
-              ${
-                activeTool === "TEXT"
-                  ? "border-black bg-black text-white"
-                  : "border-gray-300 hover:bg-gray-100 text-gray-700"
-              }`}
+            onDragStart={(e) => handleDragStart(e, "TYPE")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition"
           >
             <Type size={16} />
             Text Field
