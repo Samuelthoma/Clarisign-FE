@@ -21,7 +21,12 @@ interface ViewerProps {
   fileUrl: string | null;
   isLoading?: boolean;
   fields: DraftField[];
-  onCreateField: (clampedX: number, clampedY: number, page: number, mode: SignatureMode) => void;
+  onCreateField: (
+    e: React.DragEvent<HTMLDivElement>,
+    pageContainerRef: React.RefObject<HTMLDivElement | null>,
+    scale: number,
+    pageNumber: number,
+  ) => void;
   onMoveField: (id: string, x: number, y: number) => void;
   onRemoveField: (id: string) => void;
   onResizeField: (id: string, width: number, height: number) => void;
@@ -103,29 +108,6 @@ export default function Viewer({
 
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 2));
   const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.6));
-
-  // Signature Field Action
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
-    const mode = e.dataTransfer.getData("signature-mode") as SignatureMode;
-    if (!mode || !pageContainerRef.current) return;
-
-    const rect = pageContainerRef.current.getBoundingClientRect();
-
-    const rawX = (e.clientX - rect.left) / scale;
-    const rawY = (e.clientY - rect.top) / scale;
-
-    const config = FIELD_CONFIG["SIGNATURE"];
-
-    const pageWidth = rect.width / scale;
-    const pageHeight = rect.height / scale;
-
-    const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
-    const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
-
-    onCreateField(clampedX, clampedY, pageNumber, mode);
-  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -214,7 +196,9 @@ export default function Viewer({
               >
                 <div
                   ref={pageContainerRef}
-                  onDrop={handleDrop}
+                  onDrop={(e) =>
+                    onCreateField(e, pageContainerRef, scale, pageNumber)
+                  }
                   onDragOver={handleDragOver}
                   className="relative border border-gray-200 bg-white max-h-[1100px]"
                 >

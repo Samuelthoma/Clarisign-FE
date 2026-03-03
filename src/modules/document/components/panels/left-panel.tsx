@@ -29,12 +29,7 @@ export default function LeftPanel({
           <button
             draggable
             onDragStart={(e) => handleDragStart(e, "DRAW")}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition
-              ${
-                activeTool === "SIGNATURE"
-                  ? "border-black bg-black text-white"
-                  : "border-gray-300 hover:bg-gray-100 text-gray-700"
-              }`}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition border-gray-300 hover:bg-gray-100 text-gray-700"
           >
             <Signature size={16} />
             Signature Field
@@ -43,7 +38,7 @@ export default function LeftPanel({
           <button
             draggable
             onDragStart={(e) => handleDragStart(e, "TYPE")}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition border-gray-300 hover:bg-gray-100 text-gray-700"
           >
             <Type size={16} />
             Text Field

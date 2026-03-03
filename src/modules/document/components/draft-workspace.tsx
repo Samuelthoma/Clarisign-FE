@@ -9,6 +9,8 @@ import dynamic from "next/dynamic";
 import { ArrowLeft, FileQuestion } from "lucide-react";
 import { DraftField, FieldType, SignatureMode, Signer } from "../types";
 import SignatureAssignmentModal from "./signature-assignment-modal";
+import { useSigners } from "../hooks/useSigners";
+import { useDraftWorkspace } from "../hooks/useDraftWorkspace";
 
 interface Props {
   documentId: string;
@@ -20,13 +22,12 @@ export default function DraftWorkspace({ documentId }: Props) {
   const [activeTool, setActiveTool] = useState<FieldType | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [fields, setFields] = useState<DraftField[]>([]);
-  const [signers, setSigners] = useState<Signer[]>([
+  const { signers, addSigner, removeSigner, reorderSigners } = useSigners([
     {
       id: "signer-1",
       name: "John Doe",
       email: "john@example.com",
-      order: 1,
+      order: 0,
       status: "DRAFT",
       color: "#2563eb",
     },
@@ -34,71 +35,13 @@ export default function DraftWorkspace({ documentId }: Props) {
       id: "signer-2",
       name: "Jane Smith",
       email: "jane@example.com",
-      order: 2,
+      order: 0,
       status: "DRAFT",
       color: "#16a34a",
     },
   ]);
-  const [pendingPosition, setPendingPosition] = useState<{
-    x: number;
-    y: number;
-    page: number;
-    mode: SignatureMode;
-  } | null>(null);
 
-  useEffect(() => {
-    console.log(fields);
-  }, [fields]);
-
-  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
-
-  const handleCreateField = (
-    x: number,
-    y: number,
-    page: number,
-    mode: SignatureMode,
-  ) => {
-    setPendingPosition({ x, y, page, mode });
-    setIsAssignmentModalOpen(true);
-  };
-
-  const confirmSignatureField = (signerId: string) => {
-    if (!pendingPosition) return;
-
-    const newField: DraftField = {
-      id: crypto.randomUUID(),
-      type: "SIGNATURE",
-      mode: pendingPosition.mode,
-      signerId,
-      x: pendingPosition.x,
-      y: pendingPosition.y,
-      page: pendingPosition.page,
-      width: 180,
-      height: 60,
-    };
-
-    setFields((prev) => [...prev, newField]);
-    setPendingPosition(null);
-    setIsAssignmentModalOpen(false);
-  };
-
-  const handleMoveField = (id: string, x: number, y: number) => {
-    setFields((prev) =>
-      prev.map((field) => (field.id == id ? { ...field, x, y } : field)),
-    );
-  };
-
-  const handleRemoveField = (id: string) => {
-    setFields((prev) => prev.filter((field) => field.id !== id));
-  };
-
-  const handleResizeField = (id: string, width: number, height: number) => {
-    setFields((prev) =>
-      prev.map((field) =>
-        field.id === id ? { ...field, width, height } : field,
-      ),
-    );
-  };
+  const draft = useDraftWorkspace();
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -155,24 +98,21 @@ export default function DraftWorkspace({ documentId }: Props) {
             <Viewer
               fileUrl={fileUrl}
               isLoading={isLoading}
-              fields={fields}
-              onCreateField={handleCreateField}
-              onMoveField={handleMoveField}
-              onRemoveField={handleRemoveField}
-              onResizeField={handleResizeField}
+              fields={draft.fields}
+              onCreateField={draft.handleDrop}
+              onMoveField={draft.moveField}
+              onRemoveField={draft.removeField}
+              onResizeField={draft.resizeField}
             />
           }
           right={<RightPanel />}
         />
       )}
       <SignatureAssignmentModal
-        isOpen={isAssignmentModalOpen}
+        isOpen={draft.isAssignmentModalOpen}
         signers={signers}
-        onClose={() => {
-          setPendingPosition(null);
-          setIsAssignmentModalOpen(false);
-        }}
-        onConfirm={confirmSignatureField}
+        onClose={draft.cancelSignatureField}
+        onConfirm={draft.confirmSignatureField}
       />
     </div>
   );
