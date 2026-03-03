@@ -21,8 +21,8 @@ export default function LeftPanel({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xs uppercase tracking-wider text-gray-400 mb-3">
-          Fields
+        <h3 className="text-xs uppercase tracking-wider text-gray-600 mb-3">
+          Signature
         </h3>
 
         <div className="space-y-2">
@@ -32,7 +32,7 @@ export default function LeftPanel({
             className="w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition border-gray-300 hover:bg-gray-100 text-gray-700"
           >
             <Signature size={16} />
-            Signature Field
+            Draw Signature
           </button>
 
           <button
@@ -41,7 +41,7 @@ export default function LeftPanel({
             className="w-full flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition border-gray-300 hover:bg-gray-100 text-gray-700"
           >
             <Type size={16} />
-            Text Field
+            Type Signature
           </button>
         </div>
       </div>

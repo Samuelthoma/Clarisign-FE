@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import {
   ChevronLeft,
@@ -9,18 +9,21 @@ import {
   ZoomOut,
   FileText,
   ImageUpscale,
+  PenLine,
 } from "lucide-react";
 import Skeleton from "@mui/material/Skeleton";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { DraftField, FieldType, SignatureMode } from "../../types";
-import { FIELD_CONFIG } from "../../field-config";
+import { DraftField, Signer } from "../../types";
 import { useFieldInteraction } from "../../hooks/useFieldInteraction";
+import FieldBox from "../ui/field";
+import DocumentSkeleton from "../ui/DocumentSkeleton";
 
 interface ViewerProps {
   fileUrl: string | null;
   isLoading?: boolean;
   fields: DraftField[];
+  signers: Signer[];
   onCreateField: (
     e: React.DragEvent<HTMLDivElement>,
     pageContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -37,50 +40,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-function DocumentSkeleton() {
-  return (
-    <div className="w-[800px] h-[1100px] p-12 bg-white border border-gray-200 flex flex-col gap-6">
-      <Skeleton
-        variant="rectangular"
-        width="33%"
-        height={40}
-        className="mb-4 rounded-md"
-      />
-
-      <div>
-        <Skeleton variant="text" width="100%" height={24} />
-        <Skeleton variant="text" width="100%" height={24} />
-        <Skeleton variant="text" width="92%" height={24} />
-        <Skeleton variant="text" width="80%" height={24} />
-      </div>
-
-      <div className="mt-2">
-        <Skeleton variant="text" width="100%" height={24} />
-        <Skeleton variant="text" width="85%" height={24} />
-        <Skeleton variant="text" width="100%" height={24} />
-        <Skeleton variant="text" width="75%" height={24} />
-      </div>
-
-      <Skeleton
-        variant="rectangular"
-        width="100%"
-        height={200}
-        className="my-4 rounded-md"
-      />
-
-      <div>
-        <Skeleton variant="text" width="100%" height={24} />
-        <Skeleton variant="text" width="75%" height={24} />
-        <Skeleton variant="text" width="85%" height={24} />
-      </div>
-    </div>
-  );
-}
-
 export default function Viewer({
   fileUrl,
   isLoading = false,
   fields,
+  signers,
   onCreateField,
   onMoveField,
   onRemoveField,
@@ -92,7 +56,6 @@ export default function Viewer({
 
   const pageContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Document Action
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
     setPageNumber(1);
@@ -120,6 +83,8 @@ export default function Viewer({
     onMoveField,
     onResizeField,
   });
+
+  const signerMap = Object.fromEntries(signers.map((s) => [s.id, s]));
 
   return (
     <div className="flex flex-col w-full h-full bg-[#f4f6f8] overflow-hidden">
@@ -211,38 +176,21 @@ export default function Viewer({
 
                   {fields
                     .filter((field) => field.page === pageNumber)
-                    .map((field) => (
-                      <div
-                        key={field.id}
-                        onMouseDown={(e) => startMove(e, field)}
-                        className="absolute border border-blue-500 bg-blue-50/40 rounded-md z-20 group transition"
-                        style={{
-                          left: field.x * scale,
-                          top: field.y * scale,
-                          width: field.width * scale,
-                          height: field.height * scale,
-                        }}
-                      >
-                        <div
-                          onMouseDown={(e) => startResize(e, field)}
-                          className="absolute bottom-1 right-1 w-4 h-4 flex items-center justify-center text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-se-resize"
-                        >
-                          <ImageUpscale size={14} />
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemoveField(field.id);
-                          }}
-                          className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white text-gray-500 border border-gray-200 shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:text-red-600"
-                        >
-                          ×
-                        </button>
-                        <div className="text-[10px] font-medium text-gray-600 select-none pointer-events-none">
-                          {field.mode}
-                        </div>
-                      </div>
-                    ))}
+                    .map((field) => {
+                      const signer = signerMap[field.signerId!];
+
+                      return (
+                        <FieldBox
+                          key={field.id}
+                          field={field}
+                          signer={signer}
+                          scale={scale}
+                          onStartMove={startMove}
+                          onStartResize={startResize}
+                          onRemove={onRemoveField}
+                        />
+                      );
+                    })}
                 </div>
               </Document>
             )}

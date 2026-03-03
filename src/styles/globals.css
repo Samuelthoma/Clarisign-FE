@@ -199,3 +199,7 @@ body {
 .react-pdf__Page__textContent {
   pointer-events: none;
 }
+
+::-webkit-scrollbar {
+    display: none;
+}

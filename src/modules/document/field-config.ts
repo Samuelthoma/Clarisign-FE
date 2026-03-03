@@ -12,9 +12,9 @@ export const FIELD_CONFIG: Record<
 > = {
   SIGNATURE: {
     width: 180,
-    height: 60,
-    minWidth: 60,
-    minHeight: 40,
+    height: 80,
+    minWidth: 80,
+    minHeight: 80,
     resizable: true,
   }
 };

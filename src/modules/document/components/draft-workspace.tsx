@@ -22,24 +22,6 @@ export default function DraftWorkspace({ documentId }: Props) {
   const [activeTool, setActiveTool] = useState<FieldType | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { signers, addSigner, removeSigner, reorderSigners } = useSigners([
-    {
-      id: "signer-1",
-      name: "John Doe",
-      email: "john@example.com",
-      order: 0,
-      status: "DRAFT",
-      color: "#2563eb",
-    },
-    {
-      id: "signer-2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      order: 0,
-      status: "DRAFT",
-      color: "#16a34a",
-    },
-  ]);
 
   const draft = useDraftWorkspace();
 
@@ -99,18 +81,25 @@ export default function DraftWorkspace({ documentId }: Props) {
               fileUrl={fileUrl}
               isLoading={isLoading}
               fields={draft.fields}
+              signers={draft.signers}
               onCreateField={draft.handleDrop}
               onMoveField={draft.moveField}
               onRemoveField={draft.removeField}
               onResizeField={draft.resizeField}
             />
           }
-          right={<RightPanel />}
+          right={
+            <RightPanel
+              signers={draft.signers}
+              onAddSigner={draft.addSigner}
+              onRemoveSigner={draft.removeSigner}
+            />
+          }
         />
       )}
       <SignatureAssignmentModal
         isOpen={draft.isAssignmentModalOpen}
-        signers={signers}
+        signers={draft.signers}
         onClose={draft.cancelSignatureField}
         onConfirm={draft.confirmSignatureField}
       />

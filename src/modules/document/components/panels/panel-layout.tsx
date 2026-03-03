@@ -28,8 +28,8 @@ export default function PanelLayout({ left, center, right }: PanelLayoutProps) {
           >
             <PanelLeft size={18} />
             {leftOpen && (
-              <span className="uppercase tracking-wider text-gray-400">
-                Fields
+              <span className="uppercase tracking-wider text-black">
+                Add Fields
               </span>
             )}
           </button>
@@ -64,7 +64,7 @@ export default function PanelLayout({ left, center, right }: PanelLayoutProps) {
           >
             <PanelRight size={18} />
             {rightOpen && (
-              <span className="uppercase tracking-wider text-gray-400">
+              <span className="uppercase tracking-wider text-black">
                 Collaborator
               </span>
             )}
