@@ -13,9 +13,19 @@ const normalizeSignerOrder = (signers: Signer[]): Signer[] => {
   }));
 };
 
-export function useSigners(initialSigners: Signer[] = []) {
+export function useSigners() {
+  const ownerSigner: Signer = {
+    id: "Sam",
+    name: "Samuel Thomas",
+    email: "samuelthomas183@gmail.com",
+    order: 0,
+    status: "DRAFT",
+    color: generateColor(0),
+    isOwner: true,
+  };
+
   const [signers, setSigners] = useState<Signer[]>(
-    normalizeSignerOrder(initialSigners),
+    normalizeSignerOrder([ownerSigner]),
   );
 
   const addSigner = (name: string, email: string) => {
@@ -34,9 +44,12 @@ export function useSigners(initialSigners: Signer[] = []) {
   };
 
   const removeSigner = (signerId: string) => {
-    setSigners((prev) =>
-      normalizeSignerOrder(prev.filter((s) => s.id !== signerId)),
-    );
+    setSigners((prev) => {
+      const signer = prev.find((s) => s.id === signerId);
+      if (!signer || signer.isOwner) return prev;
+
+      return normalizeSignerOrder(prev.filter((s) => s.id !== signerId));
+    });
   };
 
   const reorderSigners = (newOrder: Signer[]) => {

@@ -19,7 +19,10 @@ interface Props {
 const Viewer = dynamic(() => import("./panels/viewer"), { ssr: false });
 
 export default function DraftWorkspace({ documentId }: Props) {
-  const [activeTool, setActiveTool] = useState<FieldType | null>(null);
+  const [activeTool, setActiveTool] = useState<{
+    type: FieldType;
+    mode: SignatureMode;
+  } | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -40,6 +43,10 @@ export default function DraftWorkspace({ documentId }: Props) {
 
     fetchDocument();
   }, [documentId]);
+
+  // useEffect(() => {
+  //   console.log(draft.fields);
+  // }, [draft.fields]);
 
   if (!isLoading && !fileUrl) {
     return (
@@ -86,6 +93,9 @@ export default function DraftWorkspace({ documentId }: Props) {
               onMoveField={draft.moveField}
               onRemoveField={draft.removeField}
               onResizeField={draft.resizeField}
+              onPlaceField={draft.handlePlaceField}
+              clearPlacementTool={() => setActiveTool(null)}
+              placementTool={activeTool}
             />
           }
           right={

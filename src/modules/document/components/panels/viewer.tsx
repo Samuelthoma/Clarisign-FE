@@ -14,7 +14,7 @@ import {
 import Skeleton from "@mui/material/Skeleton";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { DraftField, Signer } from "../../types";
+import { DraftField, FieldType, SignatureMode, Signer } from "../../types";
 import { useFieldInteraction } from "../../hooks/useFieldInteraction";
 import FieldBox from "../ui/field";
 import DocumentSkeleton from "../ui/DocumentSkeleton";
@@ -24,6 +24,18 @@ interface ViewerProps {
   isLoading?: boolean;
   fields: DraftField[];
   signers: Signer[];
+  placementTool: {
+    type: FieldType;
+    mode: SignatureMode;
+  } | null;
+  clearPlacementTool: () => void;
+  onPlaceField: (
+    e: React.MouseEvent<HTMLDivElement>,
+    pageContainerRef: React.RefObject<HTMLDivElement | null>,
+    scale: number,
+    pageNumber: number,
+    mode: SignatureMode,
+  ) => void;
   onCreateField: (
     e: React.DragEvent<HTMLDivElement>,
     pageContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -49,6 +61,9 @@ export default function Viewer({
   onMoveField,
   onRemoveField,
   onResizeField,
+  onPlaceField,
+  placementTool,
+  clearPlacementTool,
 }: ViewerProps) {
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -145,7 +160,7 @@ export default function Viewer({
 
       <div className="flex-1 overflow-auto bg-[#f4f6f8] p-6">
         <div className="flex justify-center min-w-0">
-          <div className="bg-white border border-gray-300 shadow-xl rounded-md p-4 max-w-full">
+          <div className="inline-block bg-white border border-gray-300 shadow-xl rounded-md p-4">
             {isLoading ? (
               <DocumentSkeleton />
             ) : (
@@ -165,7 +180,25 @@ export default function Viewer({
                     onCreateField(e, pageContainerRef, scale, pageNumber)
                   }
                   onDragOver={handleDragOver}
-                  className="relative border border-gray-200 bg-white max-h-[1100px]"
+                  onClick={(e) => {
+                    if (!placementTool) return;
+
+                    if ((e.target as HTMLElement).closest("[data-field]"))
+                      return;
+
+                    onPlaceField(
+                      e,
+                      pageContainerRef,
+                      scale,
+                      pageNumber,
+                      placementTool.mode,
+                    );
+
+                    clearPlacementTool();
+                  }}
+                  className={`relative border border-gray-200 bg-white ${
+                    placementTool ? "cursor-crosshair" : ""
+                  }`}
                 >
                   <Page
                     pageNumber={pageNumber}

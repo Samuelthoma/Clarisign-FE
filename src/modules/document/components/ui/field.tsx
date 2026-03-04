@@ -30,6 +30,7 @@ export default function FieldBox({
 
   return (
     <div
+      data-field
       onMouseDown={(e) => onStartMove(e, field)}
       className="absolute rounded-md z-20 group transition cursor-move"
       style={{

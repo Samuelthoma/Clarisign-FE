@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SignatureMode } from "../types";
+import { FieldType, SignatureMode } from "../types";
 import { FIELD_CONFIG } from "../field-config";
 import { useFields } from "./useFields";
 import { useSigners } from "./useSigners";
@@ -12,12 +12,7 @@ interface PendingPosition {
 }
 
 export function useDraftWorkspace() {
-  const {
-    signers,
-    addSigner,
-    removeSigner,
-    reorderSigners,
-  } = useSigners();
+  const { signers, addSigner, removeSigner, reorderSigners } = useSigners();
 
   const {
     fields,
@@ -31,25 +26,21 @@ export function useDraftWorkspace() {
   const [pendingPosition, setPendingPosition] =
     useState<PendingPosition | null>(null);
 
-  const [isAssignmentModalOpen, setIsAssignmentModalOpen] =
-    useState(false);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   const handleDrop = (
     e: React.DragEvent<HTMLDivElement>,
     pageContainerRef: React.RefObject<HTMLDivElement | null>,
     scale: number,
-    pageNumber: number
+    pageNumber: number,
   ) => {
     e.preventDefault();
 
-    const mode = e.dataTransfer.getData(
-      "signature-mode"
-    ) as SignatureMode;
+    const mode = e.dataTransfer.getData("signature-mode") as SignatureMode;
 
     if (!mode || !pageContainerRef.current) return;
 
-    const rect =
-      pageContainerRef.current.getBoundingClientRect();
+    const rect = pageContainerRef.current.getBoundingClientRect();
 
     const rawX = (e.clientX - rect.left) / scale;
     const rawY = (e.clientY - rect.top) / scale;
@@ -59,15 +50,42 @@ export function useDraftWorkspace() {
     const pageWidth = rect.width / scale;
     const pageHeight = rect.height / scale;
 
-    const clampedX = Math.max(
-      0,
-      Math.min(rawX, pageWidth - config.width)
-    );
+    const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
 
-    const clampedY = Math.max(
-      0,
-      Math.min(rawY, pageHeight - config.height)
-    );
+    const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
+
+    setPendingPosition({
+      x: clampedX,
+      y: clampedY,
+      page: pageNumber,
+      mode,
+    });
+
+    setIsAssignmentModalOpen(true);
+  };
+
+  const handlePlaceField = (
+    e: React.MouseEvent<HTMLDivElement>,
+    pageContainerRef: React.RefObject<HTMLDivElement | null>,
+    scale: number,
+    pageNumber: number,
+    mode: SignatureMode,
+  ) => {
+    if (!pageContainerRef.current) return;
+
+    const rect = pageContainerRef.current.getBoundingClientRect();
+
+    const rawX = (e.clientX - rect.left) / scale;
+    const rawY = (e.clientY - rect.top) / scale;
+
+    const config = FIELD_CONFIG["SIGNATURE"];
+
+    const pageWidth = rect.width / scale;
+    const pageHeight = rect.height / scale;
+
+    const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
+
+    const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
 
     setPendingPosition({
       x: clampedX,
@@ -87,7 +105,7 @@ export function useDraftWorkspace() {
       pendingPosition.y,
       pendingPosition.page,
       signerId,
-      pendingPosition.mode
+      pendingPosition.mode,
     );
 
     setPendingPosition(null);
@@ -114,6 +132,7 @@ export function useDraftWorkspace() {
     resizeField,
     removeField,
     handleDrop,
+    handlePlaceField,
     confirmSignatureField,
     cancelSignatureField,
     isAssignmentModalOpen,
