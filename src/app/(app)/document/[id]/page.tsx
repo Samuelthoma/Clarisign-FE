@@ -1,6 +1,6 @@
 "use client";
 
-import DraftWorkspace from "@/src/modules/document/components/draft-workspace";
+import DraftWorkspace from "@/src/modules/document/components/workspace/draft-workspace";
 import { useParams } from "next/navigation";
 
 export default function Workspace() {

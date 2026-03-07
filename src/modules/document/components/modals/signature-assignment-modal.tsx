@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SignatureMode, Signer } from "../types";
+import { Signer } from "../../types";
 
 interface Props {
   isOpen: boolean;

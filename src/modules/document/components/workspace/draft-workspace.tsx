@@ -1,22 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PanelLayout from "./panels/panel-layout";
-import LeftPanel from "./panels/left-panel";
-import RightPanel from "./panels/right-panel";
+import PanelLayout from "../panels/panel-layout";
+import LeftPanel from "../panels/left-panel";
+import RightPanel from "../panels/right-panel";
 import { getDocumentFileApi } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
 import { ArrowLeft, FileQuestion } from "lucide-react";
-import { DraftField, FieldType, SignatureMode, Signer } from "../types";
-import SignatureAssignmentModal from "./signature-assignment-modal";
-import { useSigners } from "../hooks/useSigners";
-import { useDraftWorkspace } from "../hooks/useDraftWorkspace";
+import { FieldType, SignatureMode } from "../../types";
+import SignatureAssignmentModal from "../modals/signature-assignment-modal";
+import { useDraftWorkspace } from "../../hooks/useDraftWorkspace";
 
 interface Props {
   documentId: string;
 }
 
-const Viewer = dynamic(() => import("./panels/viewer"), { ssr: false });
+const Viewer = dynamic(() => import("../viewer/viewer"), { ssr: false });
 
 export default function DraftWorkspace({ documentId }: Props) {
   const [activeTool, setActiveTool] = useState<{
@@ -43,10 +42,6 @@ export default function DraftWorkspace({ documentId }: Props) {
 
     fetchDocument();
   }, [documentId]);
-
-  // useEffect(() => {
-  //   console.log(draft.fields);
-  // }, [draft.fields]);
 
   if (!isLoading && !fileUrl) {
     return (
