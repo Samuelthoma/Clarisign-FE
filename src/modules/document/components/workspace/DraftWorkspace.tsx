@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PanelLayout from "../panels/panel-layout";
-import LeftPanel from "../panels/left-panel";
+import DraftToolsPanel from "../panels/DraftToolsPanel";
 import RightPanel from "../panels/right-panel";
 import { getDocumentFileApi } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
@@ -15,7 +15,7 @@ interface Props {
   documentId: string;
 }
 
-const Viewer = dynamic(() => import("../viewer/viewer"), { ssr: false });
+const Viewer = dynamic(() => import("../viewer/DraftViewer"), { ssr: false });
 
 export default function DraftWorkspace({ documentId }: Props) {
   const [activeTool, setActiveTool] = useState<{
@@ -26,6 +26,9 @@ export default function DraftWorkspace({ documentId }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const draft = useDraftWorkspace();
+
+  const onSaveDraft = () => {
+  }
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -76,7 +79,7 @@ export default function DraftWorkspace({ documentId }: Props) {
       {!isLoading && (
         <PanelLayout
           left={
-            <LeftPanel activeTool={activeTool} setActiveTool={setActiveTool} />
+            <DraftToolsPanel activeTool={activeTool} setActiveTool={setActiveTool} onSaveDraft={onSaveDraft} />
           }
           center={
             <Viewer

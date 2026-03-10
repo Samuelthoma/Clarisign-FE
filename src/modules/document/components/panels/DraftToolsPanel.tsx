@@ -1,24 +1,27 @@
+"use client";
+
 import { Signature, Type } from "lucide-react";
 import { FieldType, SignatureMode } from "../../types";
 
-interface LeftPanelProps {
+interface DraftToolsPanelProps {
   activeTool: {
     type: FieldType;
     mode: SignatureMode;
   } | null;
-
   setActiveTool: (
     tool: {
       type: FieldType;
       mode: SignatureMode;
     } | null,
   ) => void;
+  onSaveDraft: () => void;
 }
 
-export default function LeftPanel({
+export default function DraftToolsPanel({
   activeTool,
   setActiveTool,
-}: LeftPanelProps) {
+  onSaveDraft,
+}: DraftToolsPanelProps) {
   const handleDragStart = (
     e: React.DragEvent<HTMLButtonElement>,
     mode: SignatureMode,
@@ -46,8 +49,8 @@ export default function LeftPanel({
     activeTool?.type === "SIGNATURE" && activeTool?.mode === mode;
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-6 flex flex-col h-full">
+      <div className="flex-1">
         <h3 className="text-xs uppercase tracking-wider text-gray-600 mb-3">
           Signature
         </h3>
@@ -87,8 +90,11 @@ export default function LeftPanel({
         </div>
       </div>
 
-      <div className="pt-6 border-t border-gray-100">
-        <button className="w-full py-2 rounded-md bg-black text-white text-sm font-medium hover:opacity-90 transition">
+      <div className="pt-6 border-t border-gray-100 mt-auto">
+        <button 
+          onClick={onSaveDraft}
+          className="w-full py-2 rounded-md bg-black text-white text-sm font-medium hover:opacity-90 transition"
+        >
           Save Draft
         </button>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import {
   ChevronLeft,
@@ -8,98 +8,48 @@ import {
   ZoomIn,
   ZoomOut,
   FileText,
-  ImageUpscale,
-  PenLine,
 } from "lucide-react";
-import Skeleton from "@mui/material/Skeleton";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { DraftField, FieldType, SignatureMode, Signer } from "../../types";
-import { useFieldInteraction } from "../../hooks/useFieldInteraction";
-import FieldBox from "../ui/field";
 import DocumentSkeleton from "../ui/DocumentSkeleton";
-
-interface ViewerProps {
-  fileUrl: string | null;
-  isLoading?: boolean;
-  fields: DraftField[];
-  signers: Signer[];
-  placementTool: {
-    type: FieldType;
-    mode: SignatureMode;
-  } | null;
-  clearPlacementTool: () => void;
-  onPlaceField: (
-    e: React.MouseEvent<HTMLDivElement>,
-    pageContainerRef: React.RefObject<HTMLDivElement | null>,
-    scale: number,
-    pageNumber: number,
-    mode: SignatureMode,
-  ) => void;
-  onCreateField: (
-    e: React.DragEvent<HTMLDivElement>,
-    pageContainerRef: React.RefObject<HTMLDivElement | null>,
-    scale: number,
-    pageNumber: number,
-  ) => void;
-  onMoveField: (id: string, x: number, y: number) => void;
-  onRemoveField: (id: string) => void;
-  onResizeField: (id: string, width: number, height: number) => void;
-}
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
-export default function Viewer({
+export interface BaseViewerProps {
+  fileUrl: string | null;
+  isLoading?: boolean;
+  pageNumber: number;
+  onPageChange: (page: number) => void;
+  children?: (props: {
+    scale: number;
+    pageNumber: number;
+    pageContainerRef: React.RefObject<HTMLDivElement | null>;
+  }) => React.ReactNode;
+}
+
+export default function BaseViewer({
   fileUrl,
   isLoading = false,
-  fields,
-  signers,
-  onCreateField,
-  onMoveField,
-  onRemoveField,
-  onResizeField,
-  onPlaceField,
-  placementTool,
-  clearPlacementTool,
-}: ViewerProps) {
+  pageNumber,
+  onPageChange,
+  children,
+}: BaseViewerProps) {
   const [numPages, setNumPages] = useState<number>();
-  const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
-
   const pageContainerRef = useRef<HTMLDivElement | null>(null);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
-    setPageNumber(1);
+    onPageChange(1); 
   }
 
-  const goToPrevPage = () => {
-    setPageNumber((prev) => Math.max(prev - 1, 1));
-  };
-
-  const goToNextPage = () => {
-    setPageNumber((next) => Math.min(next + 1, numPages || 1));
-  };
-
+  const goToPrevPage = () => onPageChange(Math.max(pageNumber - 1, 1));
+  const goToNextPage = () => onPageChange(Math.min(pageNumber + 1, numPages || 1));
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 2));
   const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.6));
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const { startMove, startResize } = useFieldInteraction({
-    fields,
-    scale,
-    pageContainerRef,
-    onMoveField,
-    onResizeField,
-  });
-
-  const signerMap = Object.fromEntries(signers.map((s) => [s.id, s]));
 
   return (
     <div className="flex flex-col w-full h-full bg-[#f4f6f8] overflow-hidden">
@@ -176,29 +126,7 @@ export default function Viewer({
               >
                 <div
                   ref={pageContainerRef}
-                  onDrop={(e) =>
-                    onCreateField(e, pageContainerRef, scale, pageNumber)
-                  }
-                  onDragOver={handleDragOver}
-                  onClick={(e) => {
-                    if (!placementTool) return;
-
-                    if ((e.target as HTMLElement).closest("[data-field]"))
-                      return;
-
-                    onPlaceField(
-                      e,
-                      pageContainerRef,
-                      scale,
-                      pageNumber,
-                      placementTool.mode,
-                    );
-
-                    clearPlacementTool();
-                  }}
-                  className={`relative border border-gray-200 bg-white ${
-                    placementTool ? "cursor-crosshair" : ""
-                  }`}
+                  className="relative border border-gray-200 bg-white"
                 >
                   <Page
                     pageNumber={pageNumber}
@@ -206,24 +134,8 @@ export default function Viewer({
                     className="block"
                     loading={<DocumentSkeleton />}
                   />
-
-                  {fields
-                    .filter((field) => field.page === pageNumber)
-                    .map((field) => {
-                      const signer = signerMap[field.signerId!];
-
-                      return (
-                        <FieldBox
-                          key={field.id}
-                          field={field}
-                          signer={signer}
-                          scale={scale}
-                          onStartMove={startMove}
-                          onStartResize={startResize}
-                          onRemove={onRemoveField}
-                        />
-                      );
-                    })}
+                  
+                  {children && children({ scale, pageNumber, pageContainerRef })}
                 </div>
               </Document>
             )}
