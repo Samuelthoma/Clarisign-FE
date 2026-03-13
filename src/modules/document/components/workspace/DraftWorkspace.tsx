@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PanelLayout from "../panels/panel-layout";
+import PanelLayout from "../panels/PanelLayout";
 import DraftToolsPanel from "../panels/DraftToolsPanel";
-import RightPanel from "../panels/right-panel";
+import RightPanel from "../panels/RightPanel";
 import { getDocumentFileApi } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
 import { ArrowLeft, FileQuestion } from "lucide-react";
 import { FieldType, SignatureMode } from "../../types";
-import SignatureAssignmentModal from "../modals/signature-assignment-modal";
+import SignatureAssignmentModal from "../modals/SignatureAssignmentModal";
 import { useDraftWorkspace } from "../../hooks/useDraftWorkspace";
 
 interface Props {
@@ -27,8 +27,11 @@ export default function DraftWorkspace({ documentId }: Props) {
 
   const draft = useDraftWorkspace();
 
-  const onSaveDraft = () => {
-  }
+  const isCurrentUserOwner = draft.signers.find(
+    (s) => s.id === draft.currentSignerId,
+  )?.isOwner;
+
+  const onSaveDraft = () => {};
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -79,7 +82,22 @@ export default function DraftWorkspace({ documentId }: Props) {
       {!isLoading && (
         <PanelLayout
           left={
-            <DraftToolsPanel activeTool={activeTool} setActiveTool={setActiveTool} onSaveDraft={onSaveDraft} />
+            isCurrentUserOwner ? (
+              <DraftToolsPanel
+                activeTool={activeTool}
+                setActiveTool={setActiveTool}
+                onSaveDraft={onSaveDraft}
+              />
+            ) : (
+              <div className="flex flex-col h-full bg-gray-50 border-r items-center justify-center p-6 text-center text-gray-500">
+                <p className="text-sm font-semibold text-gray-700 mb-1">
+                  View Only Mode
+                </p>
+                <p className="text-xs text-gray-500">
+                  Only the document owner can add or modify signature fields.
+                </p>
+              </div>
+            )
           }
           center={
             <Viewer
@@ -101,6 +119,7 @@ export default function DraftWorkspace({ documentId }: Props) {
               signers={draft.signers}
               onAddSigner={draft.addSigner}
               onRemoveSigner={draft.removeSigner}
+              canEditSigners={isCurrentUserOwner}
             />
           }
         />

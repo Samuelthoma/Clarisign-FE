@@ -28,5 +28,5 @@ export type Signer = {
   order: number;
   status: SignerStatus;
   color: string;
-  isOwner?: Boolean;
+  isOwner?: boolean;
 };

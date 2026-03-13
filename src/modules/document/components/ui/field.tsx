@@ -7,16 +7,18 @@ interface FieldBoxProps {
   field: DraftField;
   signer?: Signer;
   scale: number;
-
   mode?: "draft" | "sign" | "view";
-  
-  onStartMove?: (e: React.MouseEvent<HTMLDivElement>, field: DraftField) => void;
-  onStartResize?: (e: React.MouseEvent<HTMLDivElement>, field: DraftField) => void;
+  onStartMove?: (
+    e: React.MouseEvent<HTMLDivElement>,
+    field: DraftField,
+  ) => void;
+  onStartResize?: (
+    e: React.MouseEvent<HTMLDivElement>,
+    field: DraftField,
+  ) => void;
   onRemove?: (id: string) => void;
-
   onSignClick?: (field: DraftField) => void;
-  
-  signatureValue?: string | null; 
+  signatureValue?: string | null;
 }
 
 export default function FieldBox({
@@ -36,7 +38,7 @@ export default function FieldBox({
 
   const getCursorStyle = () => {
     if (isDraftMode) return "cursor-move";
-    if (isSignMode && !signatureValue) return "cursor-pointer hover:shadow-md hover:ring-2";
+    if (isSignMode) return "cursor-pointer hover:shadow-md hover:ring-2";
     return "cursor-default";
   };
 
@@ -50,12 +52,12 @@ export default function FieldBox({
         }
       }}
       onClick={(e) => {
-        if (isSignMode && onSignClick && !signatureValue) {
+        if (isSignMode && onSignClick) {
           e.stopPropagation();
           onSignClick(field);
         }
       }}
-      className={`absolute rounded-md z-20 group transition-color ${getCursorStyle()}`}
+      className={`absolute rounded-md z-20 group transition-opacity duration-200 ${getCursorStyle()}`}
       style={{
         left: field.x * scale,
         top: field.y * scale,
@@ -66,12 +68,26 @@ export default function FieldBox({
       }}
     >
       {signatureValue ? (
-        <img 
-          src={signatureValue} 
-          alt="Signature" 
-          className="w-full h-full object-contain p-1"
-          draggable={false}
-        />
+        <div className="relative w-full h-full group/sig flex items-center justify-center">
+          <img
+            src={signatureValue}
+            alt="Signature"
+            style={{
+              width: Math.max(field.width, 140) * scale,
+              height: Math.max(field.height, 60) * scale,
+            }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-contain p-1 drop-shadow-sm pointer-events-none"
+            draggable={false}
+          />
+
+          {isSignMode && (
+            <div className="absolute inset-0 bg-white/70 opacity-0 group-hover/sig:opacity-100 transition-opacity flex items-center justify-center rounded-sm z-10">
+              <span className="text-[11px] font-medium text-gray-700 flex items-center gap-1.5 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
+                <PenLine size={12} /> Edit Signature
+              </span>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="flex flex-col justify-between h-full p-2">
           <div className="flex items-center gap-2 text-[10px] font-medium min-w-0">
@@ -89,12 +105,6 @@ export default function FieldBox({
               <PenLine size={10} />
               <span className="truncate">Signature</span>
             </div>
-            
-            {isSignMode && !signatureValue && (
-              <span className="text-blue-600 font-semibold animate-pulse mr-1">
-                Click to sign
-              </span>
-            )}
           </div>
         </div>
       )}

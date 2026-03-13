@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { DraftField } from "../types";
-import { FIELD_CONFIG } from "../field-config";
+import { FIELD_CONFIG } from "../FieldConfig";
 
 interface UseFieldInteractionProps {
   fields: DraftField[];

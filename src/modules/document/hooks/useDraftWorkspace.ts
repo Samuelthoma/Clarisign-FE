@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FieldType, SignatureMode } from "../types";
-import { FIELD_CONFIG } from "../field-config";
+import { FIELD_CONFIG } from "../FieldConfig";
 import { useFields } from "./useFields";
 import { useSigners } from "./useSigners";
 
@@ -22,6 +22,8 @@ export function useDraftWorkspace() {
     removeField,
     removeFieldsBySigner,
   } = useFields();
+
+  const [currentSignerId, setCurrentSignerId] = useState<string>("Sam"); 
 
   const [pendingPosition, setPendingPosition] =
     useState<PendingPosition | null>(null);
@@ -51,7 +53,6 @@ export function useDraftWorkspace() {
     const pageHeight = rect.height / scale;
 
     const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
-
     const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
 
     setPendingPosition({
@@ -84,7 +85,6 @@ export function useDraftWorkspace() {
     const pageHeight = rect.height / scale;
 
     const clampedX = Math.max(0, Math.min(rawX, pageWidth - config.width));
-
     const clampedY = Math.max(0, Math.min(rawY, pageHeight - config.height));
 
     setPendingPosition({
@@ -123,6 +123,7 @@ export function useDraftWorkspace() {
   };
 
   return {
+    currentSignerId,
     signers,
     fields,
     addSigner,

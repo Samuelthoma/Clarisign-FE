@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DraftField, SignatureMode } from "../types";
-import { FIELD_CONFIG } from "../field-config";
+import { FIELD_CONFIG } from "../FieldConfig";
 
 export function useFields() {
   const [fields, setFields] = useState<DraftField[]>([]);

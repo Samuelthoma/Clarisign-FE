@@ -1,24 +1,61 @@
 import { useState, useEffect } from "react";
 import { DraftField, Signer } from "../types";
 
-export function useSignWorkspace(documentId: string) {
-  // --- Data States ---
-  const [fields, setFields] = useState<DraftField[]>([]);
-  const [signers, setSigners] = useState<Signer[]>([]);
-  
-  // In a real implementation, this ID likely comes from your JWT token or Auth session.
-  // We initialize it as an empty string until the data loads.
-  const [currentSignerId, setCurrentSignerId] = useState<string>("");
+const DUMMY_SIGNERS: Signer[] = [
+  {
+    id: "user-1",
+    name: "Alice Owner",
+    email: "alice@test.com",
+    order: 1,
+    status: "DRAFT",
+    color: "#2563eb",
+    isOwner: true,
+  },
+  {
+    id: "user-2",
+    name: "Bob Signer",
+    email: "bob@test.com",
+    order: 2,
+    status: "WAITING",
+    color: "#16a34a",
+  },
+];
 
-  // --- Signing States ---
-  // Maps field.id to a base64 signature image string
+const DUMMY_FIELDS: DraftField[] = [
+  {
+    id: "field-1",
+    type: "SIGNATURE",
+    mode: "DRAW",
+    x: 120,
+    y: 150,
+    width: 80,
+    height: 80,
+    page: 1,
+    signerId: "user-2",
+  },
+  {
+    id: "field-2",
+    type: "SIGNATURE",
+    mode: "TYPE",
+    x: 120,
+    y: 350,
+    width: 80,
+    height: 80,
+    page: 2,
+    signerId: "user-2",
+  },
+];
+
+export function useSignWorkspace(documentId: string) {
+  const [fields, setFields] = useState<DraftField[]>(DUMMY_FIELDS);
+  const [signers, setSigners] = useState<Signer[]>(DUMMY_SIGNERS);
+  const [currentSignerId, setCurrentSignerId] = useState<string>("user-2");
   const [signatures, setSignatures] = useState<Record<string, string>>({});
-  
-  // Controls the Signature Modal. If null, modal is closed.
-  const [activeSignField, setActiveSignField] = useState<DraftField | null>(null);
+  const [activeSignField, setActiveSignField] = useState<DraftField | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // --- Fetch Initial Data ---
   useEffect(() => {
     const fetchWorkspaceData = async () => {
       try {
@@ -39,7 +76,6 @@ export function useSignWorkspace(documentId: string) {
     }
   }, [documentId]);
 
-  // --- Modal Actions ---
   const openSignModal = (field: DraftField) => {
     setActiveSignField(field);
   };
@@ -51,16 +87,14 @@ export function useSignWorkspace(documentId: string) {
   const confirmSignature = (signatureData: string) => {
     if (!activeSignField) return;
 
-    // Save the signature to our dictionary
     setSignatures((prev) => ({
       ...prev,
       [activeSignField.id]: signatureData,
     }));
-    
+
     closeSignModal();
   };
 
-  // --- Submission Actions ---
   const submitDocument = async () => {
     setIsSubmitting(true);
     try {
@@ -71,12 +105,11 @@ export function useSignWorkspace(documentId: string) {
         });
       */
       console.log("Submitting signatures to backend:", signatures);
-      
+
       // Usually, you would navigate away after success:
       // router.push('/dashboard');
     } catch (error) {
       console.error("Failed to submit signatures:", error);
-      // Handle error explicitly (e.g., show a toast notification)
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +123,7 @@ export function useSignWorkspace(documentId: string) {
         await axios.post(`/api/v1/documents/${documentId}/reject`);
       */
       console.log("Rejecting document...");
-      
+
       // router.push('/dashboard');
     } catch (error) {
       console.error("Failed to reject document:", error);
