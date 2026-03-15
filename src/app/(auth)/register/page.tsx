@@ -17,6 +17,7 @@ export default function RegisterPage() {
 
   const [registerData, setRegisterData] = useState({
     email: "",
+    ocrData: Object,
   });
 
   return (
@@ -26,7 +27,10 @@ export default function RegisterPage() {
           {currentStep === 0 && (
             <AccountStep
               onNext={(data) => {
-                setRegisterData(data);
+                setRegisterData((prev) => ({
+                  ...prev,
+                  email: data.email,
+                }));
                 setCurrentStep(1);
               }}
             />
@@ -38,8 +42,23 @@ export default function RegisterPage() {
               email={registerData.email}
             />
           )}
-          {currentStep === 2 && <IdUploadStep />}
-          {currentStep === 3 && <IdValidationStep />}
+          {currentStep === 2 && (
+            <IdUploadStep
+              onNext={(data) => {
+                setCurrentStep(3);
+                setRegisterData((prev) => ({
+                  ...prev,
+                  ocrData: data,
+                }));
+              }}
+            />
+          )}
+          {currentStep === 3 && (
+            <IdValidationStep
+              ocrData={registerData.ocrData}
+              onNext={() => setCurrentStep(4)}
+            />
+          )}
           {currentStep === 4 && <LivenessDetectionStep />}
           {currentStep === 5 && <VerificationPendingStep />}
         </div>
