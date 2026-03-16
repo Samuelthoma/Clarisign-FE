@@ -1,21 +1,70 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+
+// Landmark Indices & Thresholds
+const RIGHT_EYE = [33, 160, 158, 133, 153, 144];
+const LEFT_EYE = [362, 385, 387, 263, 373, 380];
+
+const EAR_THRESHOLD = 0.25; 
+const YAW_THRESHOLD_LEFT = 0.35; 
+const YAW_THRESHOLD_RIGHT = 0.65; 
+const SMILE_THRESHOLD = 0.42; 
+
+const euclideanDistance = (p1: any, p2: any) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+
+const calculateEAR = (landmarks: any[], indices: number[]) => {
+  const horizontal = euclideanDistance(landmarks[indices[0]], landmarks[indices[3]]);
+  const v1 = euclideanDistance(landmarks[indices[1]], landmarks[indices[5]]);
+  const v2 = euclideanDistance(landmarks[indices[2]], landmarks[indices[4]]);
+  return (v1 + v2) / (2.0 * horizontal);
+};
+
+const calculateYawRatio = (landmarks: any[]) => {
+  const nose = landmarks[1];
+  const leftEdge = landmarks[234];
+  const rightEdge = landmarks[454];
+  const faceWidth = rightEdge.x - leftEdge.x;
+  return (nose.x - leftEdge.x) / faceWidth; 
+};
+
+const calculateSmileRatio = (landmarks: any[]) => {
+  const leftMouth = landmarks[61];
+  const rightMouth = landmarks[291];
+  const leftEdge = landmarks[234];
+  const rightEdge = landmarks[454];
+  return euclideanDistance(leftMouth, rightMouth) / euclideanDistance(leftEdge, rightEdge); 
+};
+
+const CHALLENGES = [
+  { id: "blink", instruction: "1/3: Please blink your eyes naturally." },
+  { id: "turn", instruction: "2/3: Slowly turn your head to the left or right." },
+  { id: "smile", instruction: "3/3: Look straight and give a big smile!" },
+  { id: "done", instruction: "Liveness verified successfully! ✅" },
+];
 
 export default function LivenessDetectionStep() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraReady, setCameraReady] = useState(false);
+  const [modelReady, setModelReady] = useState(false);
+  
+  const [validationStatus, setValidationStatus] = useState<"idle" | "validating" | "success">("idle");
+  const [instruction, setInstruction] = useState("Position your face within the frame and click start.");
+  const [extractedImage, setExtractedImage] = useState<string | null>(null);
+
+  const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const stepIndexRef = useRef<number>(0);
+  const blinkHistoryRef = useRef<boolean>(false);
+  const isTransitioningRef = useRef<boolean>(false);
+  const capturedImageRef = useRef<string | null>(null);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-
     const startCamera = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
@@ -25,37 +74,155 @@ export default function LivenessDetectionStep() {
         console.error("Camera error:", err);
       }
     };
-
     startCamera();
+    return () => stream?.getTracks().forEach((t) => t.stop());
+  }, []);
 
+  useEffect(() => {
+    const initModel = async () => {
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        );
+        faceLandmarkerRef.current = await FaceLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            delegate: "GPU",
+          },
+          outputFaceBlendshapes: true,
+          runningMode: "VIDEO",
+          numFaces: 1,
+        });
+        setModelReady(true);
+      } catch (error) {
+        console.error("Error loading model:", error);
+      }
+    };
+    initModel();
     return () => {
-      stream?.getTracks().forEach((track) => track.stop());
+      faceLandmarkerRef.current?.close();
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
   }, []);
 
+  const captureFrame = () => {
+    if (!videoRef.current) return null;
+    const video = videoRef.current;
+    
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    return canvas.toDataURL("image/jpeg", 0.9);
+  };
+
+  const advanceStep = () => {
+    isTransitioningRef.current = true;
+    setInstruction("Great! Get ready for the next step...");
+    
+    setTimeout(() => {
+      stepIndexRef.current += 1;
+      const nextChallenge = CHALLENGES[stepIndexRef.current];
+      setInstruction(nextChallenge.instruction);
+      
+      if (nextChallenge.id === "done") {
+        setValidationStatus("success");
+        if (capturedImageRef.current) {
+          setExtractedImage(capturedImageRef.current);
+        }
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      } else {
+        isTransitioningRef.current = false;
+      }
+    }, 1500); 
+  };
+
+  const processVideo = useCallback(() => {
+    if (!videoRef.current || !faceLandmarkerRef.current) return;
+
+    if (isTransitioningRef.current || CHALLENGES[stepIndexRef.current].id === "done") {
+      animationFrameRef.current = requestAnimationFrame(processVideo);
+      return;
+    }
+
+    const startTimeMs = performance.now();
+    const results = faceLandmarkerRef.current.detectForVideo(videoRef.current, startTimeMs);
+
+    if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+      const landmarks = results.faceLandmarks[0];
+      const currentChallenge = CHALLENGES[stepIndexRef.current].id;
+
+      if (currentChallenge === "blink") {
+        const averageEAR = (calculateEAR(landmarks, LEFT_EYE) + calculateEAR(landmarks, RIGHT_EYE)) / 2;
+
+        if (averageEAR < EAR_THRESHOLD) {
+          blinkHistoryRef.current = true; 
+        } else if (blinkHistoryRef.current) {
+          capturedImageRef.current = captureFrame();
+          advanceStep();
+          blinkHistoryRef.current = false;
+        }
+      } 
+      else if (currentChallenge === "turn") {
+        const yawRatio = calculateYawRatio(landmarks);
+        if (yawRatio < YAW_THRESHOLD_LEFT || yawRatio > YAW_THRESHOLD_RIGHT) {
+          advanceStep();
+        }
+      } 
+      else if (currentChallenge === "smile") {
+        const smileRatio = calculateSmileRatio(landmarks);
+        if (smileRatio > SMILE_THRESHOLD) {
+          advanceStep();
+        }
+      }
+    }
+
+    animationFrameRef.current = requestAnimationFrame(processVideo);
+  }, []);
+
+  const handleStartValidation = () => {
+    if (!modelReady || !cameraReady) return;
+    
+    setValidationStatus("validating");
+    setExtractedImage(null);
+    capturedImageRef.current = null;
+    stepIndexRef.current = 0;
+    blinkHistoryRef.current = false;
+    isTransitioningRef.current = false;
+    setInstruction(CHALLENGES[0].instruction);
+    
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    processVideo();
+  };
+
+  const handleDownloadImage = () => {
+    if (!extractedImage) return;
+    
+    const link = document.createElement("a");
+    link.href = extractedImage;
+    link.download = "verified-face.jpg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
-      <h2 className="text-2xl font-bold mb-2 text-foreground">
-        Liveness detection
-      </h2>
+      <h2 className="text-2xl font-bold mb-2 text-foreground">Liveness detection</h2>
+      
+      <div className={`text-sm mb-6 p-3 rounded-md border transition-colors ${
+        validationStatus === "success" ? "bg-green-500/10 border-green-500/50 text-green-600 font-medium" :
+        validationStatus === "validating" ? "bg-blue-500/10 border-blue-500/50 text-blue-600 font-medium" :
+        "bg-muted border-border text-muted-foreground"
+      }`}>
+        {instruction}
+      </div>
 
-      <p className="text-sm text-muted-foreground mb-6">
-        Please position your face within the frame and follow the on-screen
-        instructions to complete the liveness verification.
-      </p>
-
-      <div
-        className="
-          relative
-          w-full h-56
-          bg-muted/40
-          border border-border
-          rounded-sm
-          overflow-hidden
-          shadow-sm
-          ring-1 ring-black/5
-        "
-      >
+      <div className="relative w-full h-80 bg-muted/40 border border-border rounded-sm overflow-hidden shadow-sm ring-1 ring-black/5">
         <video
           ref={videoRef}
           muted
@@ -64,30 +231,53 @@ export default function LivenessDetectionStep() {
         />
 
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-40 h-52 border-2 border-white/70 rounded-full" />
+          <div className={`w-40 h-52 border-2 rounded-full transition-all duration-300 ${
+            validationStatus === 'success' ? 'border-green-500 bg-green-500/10' : 
+            validationStatus === 'validating' ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 
+            'border-white/70'
+          }`} />
         </div>
 
-        {!cameraReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/60">
-            <span className="text-sm text-muted-foreground">
-              Initializing camera…
-            </span>
+        {(!cameraReady || !modelReady) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium text-muted-foreground">
+                {!cameraReady ? "Connecting camera…" : "Loading AI model..."}
+              </span>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="pt-6">
-        <button
-          type="button"
-          className="
-            w-full bg-primary text-primary-foreground
-            py-2 rounded
-            hover:bg-primary/90
-            transition-colors
-          "
-        >
-          Start validation
-        </button>
+      <div className="pt-6 space-y-3">
+        {validationStatus !== "success" ? (
+          <button
+            type="button"
+            onClick={handleStartValidation}
+            disabled={!cameraReady || !modelReady}
+            className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {validationStatus === "validating" ? "Validating..." : "Start validation"}
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={handleDownloadImage}
+              className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors"
+            >
+              Download Face Image (JPG)
+            </button>
+            <button
+              type="button"
+              onClick={handleStartValidation}
+              className="w-full bg-secondary text-secondary-foreground py-2 rounded border border-border hover:bg-secondary/80 transition-colors"
+            >
+              Retry Validation
+            </button>
+          </>
+        )}
       </div>
     </>
   );
