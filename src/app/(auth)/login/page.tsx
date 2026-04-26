@@ -1,13 +1,53 @@
+"use client";
+
 import "@/src/styles/globals.css";
+import { loginApi } from "@/lib/api/AuthApi";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await loginApi(email, password);
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-4xl w-full h-[520px]">
         <div className="w-1/2 p-10 flex flex-col justify-center">
           <h2 className="text-2xl font-bold mb-6 text-foreground">Login</h2>
 
-          <form id="loginForm" className="w-full space-y-6">
+          {error && (
+            <p className="mb-4 rounded bg-red-100 p-2 text-sm text-red-600">
+              {error}
+            </p>
+          )}
+
+          <form
+            id="loginForm"
+            className="w-full space-y-6"
+            onSubmit={handleLogin}
+          >
             <div>
               <label
                 htmlFor="email"
@@ -19,6 +59,8 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 autoComplete="email"
                 className="w-full py-2 bg-transparent border-b-2 border-muted-foreground/40 text-foreground focus:outline-none focus:border-primary transition-colors"
@@ -36,6 +78,8 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 className="w-full py-2 bg-transparent border-b-2 border-muted-foreground/40 text-foreground focus:outline-none focus:border-primary transition-colors"
@@ -51,6 +95,7 @@ export default function LoginPage() {
                   hover:bg-primary/90 
                   transition-colors
                 "
+                disabled={loading}
               >
                 Login
               </button>

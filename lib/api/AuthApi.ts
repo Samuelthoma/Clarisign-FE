@@ -1,12 +1,32 @@
 "use server";
 
-import { apiFetch, fastApiFetch } from "./Client";
+import { cookies } from "next/headers";
+import { apiFetch, authFetch, fastApiFetch } from "./Client";
 
 export const loginApi = async (email: string, password: string) => {
-  return apiFetch("/auth/login", {
+  const response = await authFetch("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+
+  const setCookieHeader = response.headers.get("Set-Cookie");
+
+  if (setCookieHeader) {
+    const tokenMatch = setCookieHeader.match(/accessToken=([^;]+)/);
+
+    if (tokenMatch && tokenMatch[1]) {
+      (await cookies()).set({
+        name: "accessToken",
+        value: tokenMatch[1],
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 60,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+  }
+  return await response.json();
 };
 
 export const registerApi = async (email: string) => {
