@@ -3,31 +3,33 @@ import config from "../config";
 async function baseFetch(
   baseUrl: string,
   path: string,
-  options: RequestInit = {},
+  options: RequestInit & { responseType?: "json" | "blob" } = {},
 ) {
+  const { responseType = "json", ...fetchOptions } = options;
+
   const url = `${baseUrl}${path}`;
 
   const res = await fetch(url, {
     credentials: "include",
-    ...options,
+    ...fetchOptions,
   });
 
   if (!res.ok) {
-    let errorMessage = `HTTP ${res.status}`;
+    const text = await res.text();
 
-    try {
-      const text = await res.text();
+    console.error("API ERROR:", {
+      url,
+      status: res.status,
+      body: text,
+    });
 
-      try {
-        const body = JSON.parse(text);
-        errorMessage = body.message || text;
-      } catch {
-        errorMessage = text;
-      }
-    } catch {}
-
-    throw new Error(errorMessage);
+    throw new Error(text || `HTTP ${res.status}`);
   }
+
+  if (responseType === "blob") {
+    return res.blob();
+  }
+
   return res.json();
 }
 
@@ -39,6 +41,7 @@ export async function authFetch(path: string, options: RequestInit = {}) {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
+    credentials: "include",
     ...options,
   });
 
@@ -62,10 +65,12 @@ export async function authFetch(path: string, options: RequestInit = {}) {
   return res;
 }
 
-export function apiFetch(path: string, options: RequestInit = {}) {
+export function apiFetch(path: string, options: RequestInit & { responseType?: "json" | "blob" } = {}) {
+  const isFormData = options.body instanceof FormData;
+
   return baseFetch(config.API_BASE_URL as string, path, {
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(options.headers || {}),
     },
     ...options,

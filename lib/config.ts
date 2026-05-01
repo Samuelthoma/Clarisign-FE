@@ -1,7 +1,7 @@
-const API_BASE_URL = process.env.SPRING_BOOT_IP_CONFIG;
-const FAST_API_BASE_URL = process.env.FASTAPI_IP_CONFIG;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const FAST_API_BASE_URL = process.env.NEXT_PUBLIC_FAST_API_BASE_URL;
 
 export default {
   API_BASE_URL,
-  FAST_API_BASE_URL
+  FAST_API_BASE_URL,
 };

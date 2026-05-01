@@ -22,9 +22,9 @@ export default function DashboardHome() {
     try {
       setLoading(true);
       const res = await uploadDocumentApi(file);
-      router.push(`/document/${res.id}`);
+      router.push(`/document/${res.data}`);
     } catch (err: any) {
-      toast("The uploaded file exceeds the maximum allowed size", {
+      toast(err.message, {
         position: "top-right",
       });
       setLoading(false);
