@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import PanelLayout from "../panels/PanelLayout";
 import DraftToolsPanel from "../panels/DraftToolsPanel";
 import RightPanel from "../panels/RightPanel";
-import { getDocumentFileApi } from "@/lib/api/DocumentApi";
+import {
+  getDocumentFileApi,
+  saveDraftDocumentApi,
+} from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
 import { ArrowLeft, FileQuestion } from "lucide-react";
 import { FieldType, SignatureMode } from "../../types";
@@ -31,7 +34,24 @@ export default function DraftWorkspace({ documentId }: Props) {
     (s) => s.id === draft.currentSignerId,
   )?.isOwner;
 
-  const onSaveDraft = () => {};
+  const onSaveDraft = async () => {
+    try {
+      const payload = {
+        layoutItems: draft.fields.map((field) => ({
+          userId: field.signerId!,
+          page: field.page,
+          relX: field.x,
+          relY: field.y,
+          relWidth: field.width,
+          relHeight: field.height,
+          type: field.mode,
+        })),
+      };
+      await saveDraftDocumentApi(documentId, payload);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     const fetchDocument = async () => {

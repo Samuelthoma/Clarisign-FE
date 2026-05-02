@@ -1,3 +1,4 @@
+import { SaveDraftPayload } from "@/src/types/Document";
 import { apiFetch } from "./Client";
 
 export const uploadDocumentApi = async (file: File) => {
@@ -15,8 +16,20 @@ export const getDocumentFileApi = async (documentId: string) => {
     method: "GET",
     responseType: "blob",
   });
-
   const url = URL.createObjectURL(blob);
 
   return { url };
+};
+
+export const saveDraftDocumentApi = async (
+  documentId: string,
+  data: SaveDraftPayload,
+) => {
+  return apiFetch(`/api/v1/documents/${documentId}/draft`, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 };

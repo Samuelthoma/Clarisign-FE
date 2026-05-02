@@ -23,7 +23,7 @@ export function useDraftWorkspace() {
     removeFieldsBySigner,
   } = useFields();
 
-  const [currentSignerId, setCurrentSignerId] = useState<string>("Sam"); 
+  const [currentSignerId, setCurrentSignerId] = useState<string>("26cf3244-57cd-485c-9a5a-5ef4792dd55c"); 
 
   const [pendingPosition, setPendingPosition] =
     useState<PendingPosition | null>(null);

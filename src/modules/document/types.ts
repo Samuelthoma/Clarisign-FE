@@ -1,6 +1,6 @@
 export type FieldType = "SIGNATURE";
 
-export type SignatureMode = "DRAW" | "TYPE";
+export type SignatureMode = "DRAWN" | "TYPED";
 
 export interface DraftField {
   id: string;

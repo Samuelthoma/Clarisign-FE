@@ -15,7 +15,7 @@ const normalizeSignerOrder = (signers: Signer[]): Signer[] => {
 
 export function useSigners() {
   const ownerSigner: Signer = {
-    id: "Sam",
+    id: "26cf3244-57cd-485c-9a5a-5ef4792dd55c",
     name: "Samuel Thomas",
     email: "samuelthomas183@gmail.com",
     order: 0,

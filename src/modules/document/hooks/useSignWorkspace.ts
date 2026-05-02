@@ -25,7 +25,7 @@ const DUMMY_FIELDS: DraftField[] = [
   {
     id: "field-1",
     type: "SIGNATURE",
-    mode: "DRAW",
+    mode: "DRAWN",
     x: 120,
     y: 150,
     width: 80,
@@ -36,7 +36,7 @@ const DUMMY_FIELDS: DraftField[] = [
   {
     id: "field-2",
     type: "SIGNATURE",
-    mode: "TYPE",
+    mode: "TYPED",
     x: 120,
     y: 350,
     width: 80,

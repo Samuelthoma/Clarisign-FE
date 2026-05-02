@@ -58,11 +58,11 @@ export default function DraftToolsPanel({
         <div className="space-y-2">
           <button
             draggable
-            onClick={() => handleClick("DRAW")}
-            onDragStart={(e) => handleDragStart(e, "DRAW")}
+            onClick={() => handleClick("DRAWN")}
+            onDragStart={(e) => handleDragStart(e, "DRAWN")}
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-150 border
             ${
-              isActive("DRAW")
+              isActive("DRAWN")
                 ? "border-black bg-gray-100 ring-1 ring-black/10"
                 : "border-gray-300 hover:bg-gray-100 text-gray-700"
             }
@@ -74,11 +74,11 @@ export default function DraftToolsPanel({
 
           <button
             draggable
-            onClick={() => handleClick("TYPE")}
-            onDragStart={(e) => handleDragStart(e, "TYPE")}
+            onClick={() => handleClick("TYPED")}
+            onDragStart={(e) => handleDragStart(e, "TYPED")}
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-150 border
             ${
-              isActive("TYPE")
+              isActive("TYPED")
                 ? "border-black bg-gray-100 ring-1 ring-black/10"
                 : "border-gray-300 hover:bg-gray-100 text-gray-700"
             }

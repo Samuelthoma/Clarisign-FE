@@ -101,7 +101,7 @@ export default function SignatureModal({
   };
 
   const handleSave = () => {
-    if (mode === "DRAW") {
+    if (mode === "DRAWN") {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
@@ -123,7 +123,7 @@ export default function SignatureModal({
       onConfirm(dataUrl);
     }
 
-    if (mode === "TYPE") {
+    if (mode === "TYPED") {
       if (!typedName.trim()) {
         alert("Please type your name before saving.");
         return;
@@ -157,7 +157,7 @@ export default function SignatureModal({
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800">
-            {mode === "DRAW" ? "Draw Your Signature" : "Type Your Signature"}
+            {mode === "DRAWN" ? "Draw Your Signature" : "Type Your Signature"}
           </h2>
           <button
             onClick={onClose}
@@ -168,7 +168,7 @@ export default function SignatureModal({
         </div>
 
         <div className="p-6 bg-gray-50 flex flex-col items-center justify-center">
-          {mode === "DRAW" ? (
+          {mode === "DRAWN" ? (
             <div className="w-full relative">
               <canvas
                 ref={canvasRef}
