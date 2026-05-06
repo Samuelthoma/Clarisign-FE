@@ -1,3 +1,9 @@
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+};
+
 export type PendingUser = {
     id: string
     username: string
