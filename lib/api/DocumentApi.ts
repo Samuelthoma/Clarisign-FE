@@ -21,6 +21,22 @@ export const getDocumentFileApi = async (documentId: string) => {
   return { url };
 };
 
+export const getDocumentCollaboratorsApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/collaborators`, {
+    method: "GET",
+  });
+};
+
+export const addDocumentCollaboratorApi = async (
+  email: string,
+  documentId: string,
+) => {
+  return apiFetch(`/api/v1/documents/${documentId}/collaborators`, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+};
+
 export const saveDraftDocumentApi = async (
   documentId: string,
   data: SaveDraftPayload,

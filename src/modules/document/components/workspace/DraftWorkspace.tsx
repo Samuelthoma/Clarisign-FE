@@ -28,7 +28,7 @@ export default function DraftWorkspace({ documentId }: Props) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const draft = useDraftWorkspace();
+  const draft = useDraftWorkspace(documentId);
 
   const isCurrentUserOwner = draft.signers.find(
     (s) => s.id === draft.currentSignerId,

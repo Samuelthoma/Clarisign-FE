@@ -3,6 +3,7 @@ import { FieldType, SignatureMode } from "../types";
 import { FIELD_CONFIG } from "../FieldConfig";
 import { useFields } from "./useFields";
 import { useSigners } from "./useSigners";
+import { useAuthStore } from "@/src/store/AuthStore";
 
 interface PendingPosition {
   x: number;
@@ -11,8 +12,8 @@ interface PendingPosition {
   mode: SignatureMode;
 }
 
-export function useDraftWorkspace() {
-  const { signers, addSigner, removeSigner, reorderSigners } = useSigners();
+export function useDraftWorkspace(documentId: string) {
+  const { signers, addSigner, removeSigner, reorderSigners } = useSigners(documentId);
 
   const {
     fields,
@@ -23,7 +24,9 @@ export function useDraftWorkspace() {
     removeFieldsBySigner,
   } = useFields();
 
-  const [currentSignerId, setCurrentSignerId] = useState<string>("26cf3244-57cd-485c-9a5a-5ef4792dd55c"); 
+  const currentUser = useAuthStore((state) => state.user);
+
+  const currentSignerId = currentUser?.id ?? "";
 
   const [pendingPosition, setPendingPosition] =
     useState<PendingPosition | null>(null);

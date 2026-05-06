@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Signer } from "../types";
+import {
+  addDocumentCollaboratorApi,
+  getDocumentCollaboratorsApi,
+} from "@/lib/api/DocumentApi";
 
 const generateColor = (index: number) => {
   const palette = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c"];
@@ -13,34 +17,57 @@ const normalizeSignerOrder = (signers: Signer[]): Signer[] => {
   }));
 };
 
-export function useSigners() {
-  const ownerSigner: Signer = {
-    id: "26cf3244-57cd-485c-9a5a-5ef4792dd55c",
-    name: "Samuel Thomas",
-    email: "samuelthomas183@gmail.com",
-    order: 0,
-    status: "DRAFT",
-    color: generateColor(0),
-    isOwner: true,
-  };
+export function useSigners(documentId: string) {
+  const [signers, setSigners] = useState<Signer[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [signers, setSigners] = useState<Signer[]>(
-    normalizeSignerOrder([ownerSigner]),
-  );
+  const fetchSigners = async () => {
+    try {
+      const data = await getDocumentCollaboratorsApi(documentId);
 
-  const addSigner = (name: string, email: string) => {
-    setSigners((prev) => {
-      const newSigner: Signer = {
-        id: crypto.randomUUID(),
-        name,
-        email,
+      const owner: Signer = {
+        id: data.owner.id,
+        name: data.owner.name,
+        email: data.owner.email,
         order: 0,
         status: "DRAFT",
-        color: generateColor(prev.length),
+        isOwner: true,
+        color: generateColor(0),
       };
 
-      return normalizeSignerOrder([...prev, newSigner]);
-    });
+      const collaborators: Signer[] = data.collaborators.map(
+        (c: any, index: number) => ({
+          id: c.id,
+          name: c.name,
+          email: c.email,
+          order: c.signOrder ?? index + 1,
+          status: c.hasSigned ? "SIGNED" : "DRAFT",
+          color: generateColor(index + 1),
+          isOwner: false,
+        }),
+      );
+
+      setSigners(normalizeSignerOrder([owner, ...collaborators]));
+    } catch (error) {
+      console.error("Failed to fetch signers:", error);
+    } finally {
+      setIsLoading(false);
+    }
+
+    console.log(signers);
+  };
+
+  useEffect(() => {
+    fetchSigners();
+  }, [documentId]);
+
+  const addSigner = async (email: string) => {
+    try {
+      await addDocumentCollaboratorApi(email, documentId);
+      await fetchSigners();
+    } catch (error) {
+      console.error("Failed to add signer:", error);
+    }
   };
 
   const removeSigner = (signerId: string) => {
