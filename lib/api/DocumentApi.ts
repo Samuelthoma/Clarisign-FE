@@ -11,6 +11,12 @@ export const uploadDocumentApi = async (file: File) => {
   });
 };
 
+export const getRecentDocumentListApi = async () => {
+  return apiFetch("/api/v1/documents", {
+    method: "GET",
+  });
+};
+
 export const getDocumentFileApi = async (documentId: string) => {
   const blob = await apiFetch(`/api/v1/documents/${documentId}`, {
     method: "GET",

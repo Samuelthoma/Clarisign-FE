@@ -1,10 +1,28 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UploadCloud, Loader2, FileText } from "lucide-react";
-import { uploadDocumentApi } from "@/lib/api/DocumentApi";
+import {
+  UploadCloud,
+  Loader2,
+  FileText,
+  ChevronRight,
+  Crown,
+} from "lucide-react";
+import {
+  getRecentDocumentListApi,
+  uploadDocumentApi,
+} from "@/lib/api/DocumentApi";
 import { toast } from "sonner";
+
+interface RecentDocument {
+  id: string;
+  documentName: string;
+  status: string;
+  signedCount: number;
+  totalSigners: number;
+  isOwner: boolean;
+}
 
 export default function DashboardHome() {
   const router = useRouter();
@@ -12,6 +30,26 @@ export default function DashboardHome() {
 
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [documents, setDocuments] = useState<RecentDocument[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(true);
+
+  const fetchDocuments = async () => {
+    try {
+      setDocumentsLoading(true);
+
+      const data = await getRecentDocumentListApi();
+
+      setDocuments(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDocumentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
 
   const handleFileProcess = async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -127,16 +165,74 @@ export default function DashboardHome() {
           </h2>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center shadow-sm">
-          <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-100">
-            <FileText size={20} className="text-gray-400" />
-          </div>
-          <p className="text-sm font-medium text-gray-700">
-            No recent documents
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            Upload a PDF above to get started.
-          </p>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          {documentsLoading ? (
+            <div className="p-8 flex items-center justify-center">
+              <Loader2 size={20} className="animate-spin text-gray-400" />
+            </div>
+          ) : documents.length === 0 ? (
+            <div className="p-8 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-100">
+                <FileText size={20} className="text-gray-400" />
+              </div>
+
+              <p className="text-sm font-medium text-gray-700">
+                No recent documents
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Upload a PDF above to get started.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {documents.map((doc) => (
+                <button
+                  key={doc.id}
+                  onClick={() => router.push(`/document/${doc.id}`)}
+                  className="w-full grid grid-cols-[1fr_auto_auto] items-center gap-4 p-4 my-2 bg-white border border-gray-400 rounded-xl hover:border-gray-500 hover:shadow-sm transition text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                      <FileText size={18} className="text-gray-600" />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {doc.documentName}
+                      </p>
+
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        {doc.signedCount}/{doc.totalSigners} signed
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+                    <span className="text-[11px] px-2 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">
+                      {doc.status}
+                    </span>
+
+                    {doc.isOwner && (
+                      <div
+                        title="You are the owner"
+                        className="flex items-center text-amber-500"
+                      >
+                        <Crown size={13} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-end border-l border-gray-200 pl-4">
+                    <ChevronRight
+                      size={18}
+                      className="text-gray-300 shrink-0"
+                    />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
