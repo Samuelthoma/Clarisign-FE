@@ -43,6 +43,12 @@ export const addDocumentCollaboratorApi = async (
   });
 };
 
+export const getDocumentLayoutApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/draft`, {
+    method: "GET",
+  });
+}
+
 export const saveDraftDocumentApi = async (
   documentId: string,
   data: SaveDraftPayload,

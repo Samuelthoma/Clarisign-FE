@@ -17,12 +17,13 @@ export function useDraftWorkspace(documentId: string) {
 
   const {
     fields,
+    isLoadingFields,
     createField,
     moveField,
     resizeField,
     removeField,
     removeFieldsBySigner,
-  } = useFields();
+  } = useFields(documentId);
 
   const currentUser = useAuthStore((state) => state.user);
 
@@ -140,5 +141,6 @@ export function useDraftWorkspace(documentId: string) {
     confirmSignatureField,
     cancelSignatureField,
     isAssignmentModalOpen,
+    isLoadingFields
   };
 }

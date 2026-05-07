@@ -9,10 +9,11 @@ import {
   saveDraftDocumentApi,
 } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
-import { ArrowLeft, FileQuestion } from "lucide-react";
+import { ArrowLeft, FileQuestion, Loader2 } from "lucide-react";
 import { FieldType, SignatureMode } from "../../types";
 import SignatureAssignmentModal from "../modals/SignatureAssignmentModal";
 import { useDraftWorkspace } from "../../hooks/useDraftWorkspace";
+import { toast } from "sonner";
 
 interface Props {
   documentId: string;
@@ -48,7 +49,9 @@ export default function DraftWorkspace({ documentId }: Props) {
         })),
       };
       await saveDraftDocumentApi(documentId, payload);
+      toast.success("Draft saved successfully!");
     } catch (err) {
+      toast.error("Failed to save draft. Please try again.");
       console.error(err);
     }
   };
@@ -99,7 +102,7 @@ export default function DraftWorkspace({ documentId }: Props) {
 
   return (
     <div>
-      {!isLoading && (
+      {!isLoading && !draft.isLoadingFields && (
         <PanelLayout
           left={
             isCurrentUserOwner ? (
@@ -144,6 +147,16 @@ export default function DraftWorkspace({ documentId }: Props) {
           }
         />
       )}
+
+      {(isLoading || draft.isLoadingFields) && (
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="flex flex-col items-center gap-3 text-gray-500">
+            <Loader2 size={28} className="animate-spin" />
+            <p className="text-sm">Loading document workspace...</p>
+          </div>
+        </div>
+      )}
+      
       <SignatureAssignmentModal
         isOpen={draft.isAssignmentModalOpen}
         signers={draft.signers}
