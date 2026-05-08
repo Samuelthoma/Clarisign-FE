@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FieldType, SignatureMode } from "../types";
 import { FIELD_CONFIG } from "../FieldConfig";
 import { useFields } from "./useFields";
@@ -27,7 +27,14 @@ export function useDraftWorkspace(documentId: string) {
 
   const currentUser = useAuthStore((state) => state.user);
 
-  const currentSignerId = currentUser?.id ?? "";
+  const isCurrentUserOwner = useMemo(() => {
+    if (!currentUser || signers.length === 0) return false;
+
+    return signers.some(
+      (signer) =>
+        signer.id === currentUser.id && signer.isOwner === true,
+    );
+  }, [currentUser, signers]);
 
   const [pendingPosition, setPendingPosition] =
     useState<PendingPosition | null>(null);
@@ -127,7 +134,7 @@ export function useDraftWorkspace(documentId: string) {
   };
 
   return {
-    currentSignerId,
+    isCurrentUserOwner,
     signers,
     fields,
     addSigner,

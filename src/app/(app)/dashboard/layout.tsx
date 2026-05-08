@@ -3,8 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Activity, Settings, LogOut, FileText } from "lucide-react";
+import {
+  Home,
+  Users,
+  Activity,
+  Settings,
+  LogOut,
+  FileText,
+} from "lucide-react";
 import "@/src/styles/globals.css";
+import { logoutApi } from "@/lib/api/UserApi";
+import { toast } from "sonner";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +21,21 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logoutApi();
+      toast.success("Logged out successfully");
+      window.location.href = "/login";
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to logout");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#f4f6f8] font-sans overflow-hidden">
@@ -29,12 +53,12 @@ export default function DashboardLayout({
           <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 mt-2">
             Workspace
           </p>
-          
+
           <Link
             href="/dashboard"
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-              pathname === "/dashboard" 
-                ? "bg-blue-50 text-blue-700" 
+              pathname === "/dashboard"
+                ? "bg-blue-50 text-blue-700"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
             }`}
           >
@@ -46,7 +70,7 @@ export default function DashboardLayout({
             href="/dashboard/shared"
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
               pathname.includes("/dashboard/shared")
-                ? "bg-blue-50 text-blue-700" 
+                ? "bg-blue-50 text-blue-700"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
             }`}
           >
@@ -58,7 +82,7 @@ export default function DashboardLayout({
             href="/dashboard/audit"
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
               pathname.includes("/dashboard/audit")
-                ? "bg-blue-50 text-blue-700" 
+                ? "bg-blue-50 text-blue-700"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
             }`}
           >
@@ -72,7 +96,11 @@ export default function DashboardLayout({
             <Settings size={18} />
             Settings
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors">
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
             <LogOut size={18} />
             Log out
           </button>
@@ -82,13 +110,13 @@ export default function DashboardLayout({
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center shrink-0">
           <h1 className="text-xl font-semibold text-gray-800 capitalize">
-            {pathname === "/dashboard" ? "Dashboard" : pathname.split('/').pop()?.replace("-", " ")}
+            {pathname === "/dashboard"
+              ? "Dashboard"
+              : pathname.split("/").pop()?.replace("-", " ")}
           </h1>
         </header>
 
-        <div className="flex-1 overflow-auto p-8">
-          {children}
-        </div>
+        <div className="flex-1 overflow-auto p-8">{children}</div>
       </main>
     </div>
   );

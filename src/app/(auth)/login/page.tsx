@@ -4,6 +4,8 @@ import "@/src/styles/globals.css";
 import { loginApi } from "@/lib/api/AuthApi";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getCurrentUserApi } from "@/lib/api/UserApi";
+import { useAuthStore } from "@/src/store/AuthStore";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const setUser = useAuthStore((state) => state.setUser);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,8 @@ export default function LoginPage() {
       setError("");
 
       await loginApi(email, password);
-
+      const me = await getCurrentUserApi();
+      setUser(me);
       router.push("/dashboard");
       router.refresh();
     } catch (err: any) {

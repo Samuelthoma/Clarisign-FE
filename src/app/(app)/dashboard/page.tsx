@@ -165,13 +165,13 @@ export default function DashboardHome() {
           </h2>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-gray-100 border border-gray-200 rounded-2xl p-3 space-y-3">
           {documentsLoading ? (
-            <div className="p-8 flex items-center justify-center">
+            <div className="p-10 flex items-center justify-center">
               <Loader2 size={20} className="animate-spin text-gray-400" />
             </div>
           ) : documents.length === 0 ? (
-            <div className="p-8 flex flex-col items-center justify-center">
+            <div className="bg-white rounded-xl border border-gray-200 p-8 flex flex-col items-center justify-center">
               <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-100">
                 <FileText size={20} className="text-gray-400" />
               </div>
@@ -185,49 +185,48 @@ export default function DashboardHome() {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="space-y-3">
               {documents.map((doc) => (
                 <button
                   key={doc.id}
                   onClick={() => router.push(`/document/${doc.id}`)}
-                  className="w-full grid grid-cols-[1fr_auto_auto] items-center gap-4 p-4 my-2 bg-white border border-gray-400 rounded-xl hover:border-gray-500 hover:shadow-sm transition text-left"
+                  className="w-full grid grid-cols-[1fr_auto_auto] items-center gap-4 p-4 rounded-xl text-left transition bg-white border border-gray-400 hover:border-black hover:shadow-sm"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
-                      <FileText size={18} className="text-gray-600" />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">
-                        {doc.documentName}
-                      </p>
-
-                      <p className="text-xs text-gray-600 mt-0.5">
-                        {doc.signedCount}/{doc.totalSigners} signed
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
-                    <span className="text-[11px] px-2 py-1 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">
-                      {doc.status}
-                    </span>
-
-                    {doc.isOwner && (
-                      <div
-                        title="You are the owner"
-                        className="flex items-center text-amber-500"
-                      >
-                        <Crown size={13} />
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                        <FileText size={18} className="text-gray-600" />
                       </div>
-                    )}
-                  </div>
 
-                  <div className="flex items-center justify-end border-l border-gray-200 pl-4">
-                    <ChevronRight
-                      size={18}
-                      className="text-gray-300 shrink-0"
-                    />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {doc.documentName}
+                          </p>
+
+                          {doc.isOwner && (
+                            <div
+                              title="You are the owner"
+                              className="flex items-center text-amber-500 shrink-0"
+                            >
+                              <Crown size={13} />
+                            </div>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-gray-500 mt-1">
+                          {doc.signedCount}/{doc.totalSigners} signed
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-full bg-gray-300 text-gray-700 font-medium border border-gray-700">
+                        {doc.status}
+                      </span>
+
+                      <ChevronRight size={18} className="text-gray-300" />
+                    </div>
                   </div>
                 </button>
               ))}

@@ -14,6 +14,7 @@ import { FieldType, SignatureMode } from "../../types";
 import SignatureAssignmentModal from "../modals/SignatureAssignmentModal";
 import { useDraftWorkspace } from "../../hooks/useDraftWorkspace";
 import { toast } from "sonner";
+import { useAuthStore } from "@/src/store/AuthStore";
 
 interface Props {
   documentId: string;
@@ -28,12 +29,11 @@ export default function DraftWorkspace({ documentId }: Props) {
   } | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const isAuthLoading = useAuthStore((state) => state.isLoading);
 
   const draft = useDraftWorkspace(documentId);
 
-  const isCurrentUserOwner = draft.signers.find(
-    (s) => s.id === draft.currentSignerId,
-  )?.isOwner;
+  const isCurrentUserOwner = draft.isCurrentUserOwner;
 
   const onSaveDraft = async () => {
     try {
@@ -100,6 +100,14 @@ export default function DraftWorkspace({ documentId }: Props) {
     );
   }
 
+  if (isAuthLoading || draft.isLoadingFields) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
   return (
     <div>
       {!isLoading && !draft.isLoadingFields && (
@@ -156,7 +164,7 @@ export default function DraftWorkspace({ documentId }: Props) {
           </div>
         </div>
       )}
-      
+
       <SignatureAssignmentModal
         isOpen={draft.isAssignmentModalOpen}
         signers={draft.signers}

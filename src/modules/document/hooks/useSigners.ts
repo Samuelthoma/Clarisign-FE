@@ -4,6 +4,7 @@ import {
   addDocumentCollaboratorApi,
   getDocumentCollaboratorsApi,
 } from "@/lib/api/DocumentApi";
+import { toast } from "sonner";
 
 const generateColor = (index: number) => {
   const palette = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c"];
@@ -65,8 +66,20 @@ export function useSigners(documentId: string) {
     try {
       await addDocumentCollaboratorApi(email, documentId);
       await fetchSigners();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add signer:", error);
+
+      let errorMessage = "Failed to add signer";
+
+      try {
+        const parsed = JSON.parse(error.message);
+
+        errorMessage = parsed?.errors?.email || parsed?.message || errorMessage;
+      } catch {
+        errorMessage = error.message || errorMessage;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
