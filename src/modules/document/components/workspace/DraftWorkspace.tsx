@@ -37,6 +37,13 @@ export default function DraftWorkspace({ documentId }: Props) {
 
   const onSaveDraft = async () => {
     try {
+      const signerOrders = Array.from(
+        new Set(draft.fields.map((f) => f.signerId)),
+      ).map((signerId, index) => ({
+        userId: signerId!,
+        order: index + 1,
+      }));
+
       const payload = {
         layoutItems: draft.fields.map((field) => ({
           userId: field.signerId!,
@@ -47,6 +54,8 @@ export default function DraftWorkspace({ documentId }: Props) {
           relHeight: field.height,
           type: field.mode,
         })),
+
+        signerOrders,
       };
       await saveDraftDocumentApi(documentId, payload);
       toast.success("Draft saved successfully!");

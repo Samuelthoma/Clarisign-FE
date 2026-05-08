@@ -8,6 +8,12 @@ export type FieldLayout = {
   type: "TYPED" | "DRAWN";
 };
 
+export type SignerOrder = {
+  userId: string;
+  order: number;
+};
+
 export type SaveDraftPayload = {
   layoutItems: FieldLayout[];
+  signerOrders: SignerOrder[];
 };
