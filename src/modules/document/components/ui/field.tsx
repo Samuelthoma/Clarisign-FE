@@ -19,6 +19,7 @@ interface FieldBoxProps {
   onRemove?: (id: string) => void;
   onSignClick?: (field: DraftField) => void;
   signatureValue?: string | null;
+  canEdit?: Boolean
 }
 
 export default function FieldBox({
@@ -26,14 +27,16 @@ export default function FieldBox({
   signer,
   scale,
   mode = "draft",
+  canEdit = false,
   onStartMove,
   onStartResize,
   onRemove,
   onSignClick,
   signatureValue,
+  
 }: FieldBoxProps) {
   const borderColor = signer?.color ?? "#2563eb";
-  const isDraftMode = mode === "draft";
+  const isDraftMode = mode === "draft" && canEdit;
   const isSignMode = mode === "sign";
 
   const getCursorStyle = () => {

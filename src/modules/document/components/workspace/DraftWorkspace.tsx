@@ -143,6 +143,7 @@ export default function DraftWorkspace({ documentId }: Props) {
               onPlaceField={draft.handlePlaceField}
               clearPlacementTool={() => setActiveTool(null)}
               placementTool={activeTool}
+              isCurrentUserOwner={isCurrentUserOwner}
             />
           }
           right={

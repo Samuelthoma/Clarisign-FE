@@ -14,7 +14,7 @@ interface LayoutItemResponse {
   type: SignatureMode;
 }
 
-export function useFields(documentId: string) {
+export function useFields(documentId: string, canEdit: boolean) {
   const [fields, setFields] = useState<DraftField[]>([]);
   const [isLoadingFields, setIsLoadingFields] = useState(true);
 
@@ -75,12 +75,14 @@ export function useFields(documentId: string) {
   };
 
   const moveField = (id: string, x: number, y: number) => {
+    if (!canEdit) return;
     setFields((prev) =>
       prev.map((field) => (field.id === id ? { ...field, x, y } : field)),
     );
   };
 
   const resizeField = (id: string, width: number, height: number) => {
+    if (!canEdit) return;
     setFields((prev) =>
       prev.map((field) =>
         field.id === id ? { ...field, width, height } : field,
@@ -89,6 +91,7 @@ export function useFields(documentId: string) {
   };
 
   const removeField = (id: string) => {
+    if (!canEdit) return;
     setFields((prev) => prev.filter((field) => field.id !== id));
   };
 

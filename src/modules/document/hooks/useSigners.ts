@@ -3,6 +3,7 @@ import { Signer } from "../types";
 import {
   addDocumentCollaboratorApi,
   getDocumentCollaboratorsApi,
+  removeDocumentCollaboratorApi,
 } from "@/lib/api/DocumentApi";
 import { toast } from "sonner";
 
@@ -66,6 +67,7 @@ export function useSigners(documentId: string) {
     try {
       await addDocumentCollaboratorApi(email, documentId);
       await fetchSigners();
+      toast.success("Collaborator added successfully!");
     } catch (error: any) {
       console.error("Failed to add signer:", error);
 
@@ -83,13 +85,23 @@ export function useSigners(documentId: string) {
     }
   };
 
-  const removeSigner = (signerId: string) => {
-    setSigners((prev) => {
-      const signer = prev.find((s) => s.id === signerId);
-      if (!signer || signer.isOwner) return prev;
+  const removeSigner = async (signerId: string) => {
+    try {
+      const signer = signers.find((s) => s.id === signerId);
 
-      return normalizeSignerOrder(prev.filter((s) => s.id !== signerId));
-    });
+      if (!signer || signer.isOwner) return;
+
+      await removeDocumentCollaboratorApi(documentId, signerId);
+
+      setSigners((prev) =>
+        normalizeSignerOrder(prev.filter((s) => s.id !== signerId)),
+      );
+
+      toast.success("Collaborator removed successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove collaborator.");
+      console.error(err);
+    }
   };
 
   const reorderSigners = (newOrder: Signer[]) => {

@@ -43,11 +43,21 @@ export const addDocumentCollaboratorApi = async (
   });
 };
 
+export const removeDocumentCollaboratorApi = async (
+  documentId: string,
+  collaboratorId: string,
+) => {
+  return apiFetch(`/api/v1/documents/${documentId}/collaborators`, {
+    method: "DELETE",
+    body: JSON.stringify({ collaboratorId }),
+  });
+};
+
 export const getDocumentLayoutApi = async (documentId: string) => {
   return apiFetch(`/api/v1/documents/${documentId}/draft`, {
     method: "GET",
   });
-}
+};
 
 export const saveDraftDocumentApi = async (
   documentId: string,

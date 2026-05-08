@@ -15,16 +15,6 @@ interface PendingPosition {
 export function useDraftWorkspace(documentId: string) {
   const { signers, addSigner, removeSigner, reorderSigners } = useSigners(documentId);
 
-  const {
-    fields,
-    isLoadingFields,
-    createField,
-    moveField,
-    resizeField,
-    removeField,
-    removeFieldsBySigner,
-  } = useFields(documentId);
-
   const currentUser = useAuthStore((state) => state.user);
 
   const isCurrentUserOwner = useMemo(() => {
@@ -35,6 +25,16 @@ export function useDraftWorkspace(documentId: string) {
         signer.id === currentUser.id && signer.isOwner === true,
     );
   }, [currentUser, signers]);
+
+  const {
+    fields,
+    isLoadingFields,
+    createField,
+    moveField,
+    resizeField,
+    removeField,
+    removeFieldsBySigner,
+  } = useFields(documentId, isCurrentUserOwner);
 
   const [pendingPosition, setPendingPosition] =
     useState<PendingPosition | null>(null);

@@ -15,6 +15,7 @@ interface DraftViewerProps {
     type: FieldType;
     mode: SignatureMode;
   } | null;
+  isCurrentUserOwner: boolean;
   clearPlacementTool: () => void;
   onPlaceField: (
     e: React.MouseEvent<HTMLDivElement>,
@@ -62,6 +63,7 @@ function DraftOverlay({
   pageNumber,
   pageContainerRef,
   placementTool,
+  isCurrentUserOwner,
   clearPlacementTool,
   onCreateField,
   onPlaceField,
@@ -121,6 +123,7 @@ function DraftOverlay({
               onStartMove={startMove}
               onStartResize={startResize}
               onRemove={onRemoveField}
+              canEdit={isCurrentUserOwner}
             />
           );
         })}

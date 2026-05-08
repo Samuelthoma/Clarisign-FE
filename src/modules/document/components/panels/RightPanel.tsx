@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { Signer } from "../../types";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface RightPanelProps {
   signers: Signer[];
@@ -56,7 +68,6 @@ export default function RightPanel({
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate flex items-center gap-2">
                     {signer.order}. {signer.name}
-
                     {isDocumentOwner && (
                       <span className="text-[10px] px-2 py-0.5 bg-gray-200 rounded">
                         Owner
@@ -77,12 +88,37 @@ export default function RightPanel({
               </div>
 
               {canEditSigners && !isDocumentOwner && onRemoveSigner && (
-                <button
-                  onClick={() => onRemoveSigner(signer.id)}
-                  className="text-xs text-red-500 hover:underline shrink-0"
-                >
-                  Remove
-                </button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="shrink-0 p-1.5 rounded-md text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      title="Remove collaborator"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </AlertDialogTrigger>
+
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove collaborator?</AlertDialogTitle>
+
+                      <AlertDialogDescription>
+                        {signer.name} will lose access to this document and all
+                        assigned signature fields will be removed.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                      <AlertDialogAction
+                        onClick={() => onRemoveSigner(signer.id)}
+                      >
+                        Remove
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           );
