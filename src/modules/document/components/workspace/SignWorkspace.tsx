@@ -162,7 +162,7 @@ export default function SignWorkspace({ documentId }: Props) {
 
       <SignatureModal
         isOpen={!!sign.activeSignField}
-        mode={sign.activeSignField?.mode || "DRAW"}
+        mode={sign.activeSignField?.mode || "DRAWN"}
         onClose={sign.closeSignModal}
         onConfirm={sign.confirmSignature}
       />

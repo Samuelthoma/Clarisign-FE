@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Signer } from "../../types";
-import { Trash2 } from "lucide-react";
+import { Crown, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,12 +66,16 @@ export default function RightPanel({
                 />
 
                 <div className="min-w-0">
-                  <div className="text-sm font-medium truncate flex items-center gap-2">
-                    {signer.order}. {signer.name}
+                  <div className="text-sm font-medium min-w-0 flex items-center gap-2">
+                    <span className="truncate">
+                      {signer.order}. {signer.name}
+                    </span>
+
                     {isDocumentOwner && (
-                      <span className="text-[10px] px-2 py-0.5 bg-gray-200 rounded">
-                        Owner
-                      </span>
+                      <Crown
+                        size={14}
+                        className="text-yellow-500 fill-yellow-400 shrink-0 flex-none"
+                      />
                     )}
                   </div>
 
@@ -91,10 +95,10 @@ export default function RightPanel({
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button
-                      className="shrink-0 p-1.5 rounded-md text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      className="shrink-0 ml-2 flex items-center justify-center w-6 h-6 rounded-md text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                       title="Remove collaborator"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={14} className="shrink-0 flex-none ml-2" />
                     </button>
                   </AlertDialogTrigger>
 

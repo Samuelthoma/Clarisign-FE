@@ -71,3 +71,9 @@ export const saveDraftDocumentApi = async (
     },
   });
 };
+
+export const publishDocumentApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/publish`, {
+    method: "POST",
+  });
+}

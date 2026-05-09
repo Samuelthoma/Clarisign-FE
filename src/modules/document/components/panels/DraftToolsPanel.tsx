@@ -2,12 +2,24 @@
 
 import { Signature, Type } from "lucide-react";
 import { FieldType, SignatureMode } from "../../types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface DraftToolsPanelProps {
   activeTool: {
     type: FieldType;
     mode: SignatureMode;
   } | null;
+  isPublishing: boolean;
   setActiveTool: (
     tool: {
       type: FieldType;
@@ -15,12 +27,15 @@ interface DraftToolsPanelProps {
     } | null,
   ) => void;
   onSaveDraft: () => void;
+  onPublishDraft: () => void;
 }
 
 export default function DraftToolsPanel({
   activeTool,
   setActiveTool,
   onSaveDraft,
+  onPublishDraft,
+  isPublishing
 }: DraftToolsPanelProps) {
   const handleDragStart = (
     e: React.DragEvent<HTMLButtonElement>,
@@ -91,12 +106,43 @@ export default function DraftToolsPanel({
       </div>
 
       <div className="pt-6 border-t border-gray-100 mt-auto">
-        <button 
+        <button
           onClick={onSaveDraft}
-          className="w-full py-2 rounded-md bg-black text-white text-sm font-medium hover:opacity-90 transition"
+          className="w-full py-2 rounded-md bg-white text-gray-800 text-sm font-medium border border-gray-400 hover:bg-gray-50 transition mb-4"
         >
           Save Draft
         </button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              disabled={isPublishing}
+              className="w-full py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+            >
+              Publish Document
+            </button>
+          </AlertDialogTrigger>
+
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Publish this document?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Once published, this document will enter signing mode and cannot
+                be edited in draft state anymore.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+              <AlertDialogAction
+                onClick={onPublishDraft}
+              >
+                Yes, Publish
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import DraftToolsPanel from "../panels/DraftToolsPanel";
 import RightPanel from "../panels/RightPanel";
 import {
   getDocumentFileApi,
+  publishDocumentApi,
   saveDraftDocumentApi,
 } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
@@ -29,6 +30,7 @@ export default function DraftWorkspace({ documentId }: Props) {
   } | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [publishing, setPublishing] = useState(false);
   const isAuthLoading = useAuthStore((state) => state.isLoading);
 
   const draft = useDraftWorkspace(documentId);
@@ -62,6 +64,33 @@ export default function DraftWorkspace({ documentId }: Props) {
     } catch (err) {
       toast.error("Failed to save draft. Please try again.");
       console.error(err);
+    }
+  };
+
+  const onPublishDraft = async () => {
+    try {
+      setPublishing(true);
+
+      await publishDocumentApi(documentId);
+
+      toast.success("Document published successfully!");
+
+      window.location.href = `/document/${documentId}`;
+    } catch (err: any) {
+      console.error(err);
+
+      let message = "Failed to publish document";
+
+      try {
+        const parsed = JSON.parse(err.message);
+        message = parsed?.message || message;
+      } catch {
+        message = err.message || message;
+      }
+
+      toast.error(message);
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -127,6 +156,8 @@ export default function DraftWorkspace({ documentId }: Props) {
                 activeTool={activeTool}
                 setActiveTool={setActiveTool}
                 onSaveDraft={onSaveDraft}
+                onPublishDraft={onPublishDraft}
+                isPublishing={publishing}
               />
             ) : (
               <div className="flex flex-col h-full bg-gray-50 border-r items-center justify-center p-6 text-center text-gray-500">
