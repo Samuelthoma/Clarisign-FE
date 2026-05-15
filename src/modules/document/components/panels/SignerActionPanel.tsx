@@ -6,9 +6,8 @@ import { DraftField } from "../../types";
 interface SignerActionPanelProps {
   fields: DraftField[];
   currentSignerId: string;
-  // NEW: Pass down the map of completed signatures (fieldId -> base64 string)
-  signatures: Record<string, string>; 
-  
+  signatures: Record<string, string>;
+
   onNavigateToField: (field: DraftField) => void;
   onComplete: () => void;
   onReject: () => void;
@@ -25,10 +24,12 @@ export default function SignerActionPanel({
   isSubmitting = false,
 }: SignerActionPanelProps) {
   const assignedFields = fields.filter(
-    (field) => field.signerId === currentSignerId
+    (field) => field.signerId === currentSignerId,
   );
 
-  const completedCount = assignedFields.filter((f) => !!signatures[f.id]).length;
+  const completedCount = assignedFields.filter(
+    (f) => f.status === "ACTIVE" || !!signatures[f.id],
+  ).length;
   const totalCount = assignedFields.length;
   const isAllCompleted = totalCount > 0 && completedCount === totalCount;
 
@@ -52,8 +53,8 @@ export default function SignerActionPanel({
             </div>
           ) : (
             assignedFields.map((field, index) => {
-              // Check if this specific field's ID exists in the signatures map
-              const isCompleted = !!signatures[field.id]; 
+              const isCompleted =
+                field.status === "ACTIVE" || !!signatures[field.id];
 
               return (
                 <button
@@ -71,10 +72,15 @@ export default function SignerActionPanel({
                     {isCompleted ? (
                       <CheckCircle2 size={18} className="text-green-600" />
                     ) : (
-                      <Circle size={18} className="text-gray-400 group-hover:text-blue-500" />
+                      <Circle
+                        size={18}
+                        className="text-gray-400 group-hover:text-blue-500"
+                      />
                     )}
                     <div>
-                      <div className={`text-sm font-medium ${isCompleted ? "text-green-800" : "text-gray-700"}`}>
+                      <div
+                        className={`text-sm font-medium ${isCompleted ? "text-green-800" : "text-gray-700"}`}
+                      >
                         Signature {index + 1}
                       </div>
                       <div className="text-xs text-gray-500">
@@ -82,9 +88,13 @@ export default function SignerActionPanel({
                       </div>
                     </div>
                   </div>
-                  <PenLine 
-                    size={16} 
-                    className={isCompleted ? "text-green-600/50" : "text-gray-400 group-hover:text-blue-500"} 
+                  <PenLine
+                    size={16}
+                    className={
+                      isCompleted
+                        ? "text-green-600/50"
+                        : "text-gray-400 group-hover:text-blue-500"
+                    }
                   />
                 </button>
               );
@@ -96,7 +106,7 @@ export default function SignerActionPanel({
       <div className="pt-4 border-t border-gray-100 mt-auto space-y-3">
         <button
           onClick={onComplete}
-          disabled={!isAllCompleted || isSubmitting}
+          disabled={isSubmitting}
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition
             ${
               isAllCompleted
@@ -106,9 +116,9 @@ export default function SignerActionPanel({
           `}
         >
           <Check size={16} />
-          {isSubmitting ? "Submitting..." : "Complete Signing"}
+          Sign Document
         </button>
-        
+
         <button
           onClick={onReject}
           disabled={isSubmitting}

@@ -38,6 +38,7 @@ export default function FieldBox({
   const borderColor = signer?.color ?? "#2563eb";
   const isDraftMode = mode === "draft" && canEdit;
   const isSignMode = mode === "sign";
+  const isSigned = field.status === "ACTIVE";
 
   const getCursorStyle = () => {
     if (isDraftMode) return "cursor-move";
@@ -55,7 +56,7 @@ export default function FieldBox({
         }
       }}
       onClick={(e) => {
-        if (isSignMode && onSignClick) {
+        if (isSignMode && onSignClick && !isSigned) {
           e.stopPropagation();
           onSignClick(field);
         }

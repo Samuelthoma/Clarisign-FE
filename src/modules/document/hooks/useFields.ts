@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DraftField, SignatureMode } from "../types";
+import { DraftField, SignatureMode, SignatureStatus } from "../types";
 import { FIELD_CONFIG } from "../FieldConfig";
 import { getDocumentLayoutApi } from "@/lib/api/DocumentApi";
 
@@ -11,6 +11,7 @@ interface LayoutItemResponse {
   relY: number;
   relWidth: number;
   relHeight: number;
+  status: SignatureStatus;
   type: SignatureMode;
 }
 
@@ -32,6 +33,7 @@ export function useFields(documentId: string, canEdit: boolean) {
           signerId: item.signerId,
           x: item.relX,
           y: item.relY,
+          status: item.status,
           page: item.page,
           width: item.relWidth,
           height: item.relHeight,
@@ -67,6 +69,7 @@ export function useFields(documentId: string, canEdit: boolean) {
       x,
       y,
       page,
+      status: "PENDING",
       width: config.width,
       height: config.height,
     };

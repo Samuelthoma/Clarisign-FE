@@ -1,4 +1,4 @@
-import { SaveDraftPayload } from "@/src/types/Document";
+import { SaveDraftPayload, SignDocumentPayload } from "@/src/types/Document";
 import { apiFetch } from "./Client";
 
 export const uploadDocumentApi = async (file: File) => {
@@ -76,4 +76,17 @@ export const publishDocumentApi = async (documentId: string) => {
   return apiFetch(`/api/v1/documents/${documentId}/publish`, {
     method: "POST",
   });
-}
+};
+
+export const signDocumentApi = async (
+  documentId: string,
+  data: SignDocumentPayload,
+) => {
+  return apiFetch(`/api/v1/documents/${documentId}/signatures`, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};

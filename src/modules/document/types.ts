@@ -2,6 +2,8 @@ export type FieldType = "SIGNATURE";
 
 export type SignatureMode = "DRAWN" | "TYPED";
 
+export type SignatureStatus = "ACTIVE" | "PENDING" | "REJECTED" | "REVOKED";
+
 export interface DraftField {
   id: string;
   type: FieldType;
@@ -11,6 +13,7 @@ export interface DraftField {
   width: number;
   height: number;
   page: number;
+  status: SignatureStatus;
   signerId?: string;
 }
 

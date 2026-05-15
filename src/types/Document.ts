@@ -17,3 +17,18 @@ export type SaveDraftPayload = {
   layoutItems: FieldLayout[];
   signerOrders: SignerOrder[];
 };
+
+export type Signatures = {
+  id: string;
+  page: number;
+  relX: number;
+  relY: number;
+  relWidth: number;
+  relHeight: number;
+  documentType: "TYPED" | "DRAWN";
+  signatureContent: string;
+}
+
+export type SignDocumentPayload = {
+  signatures: Signatures[];
+}
