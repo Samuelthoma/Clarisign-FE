@@ -1,6 +1,13 @@
 "use client";
 
-import { CheckCircle2, Circle, PenLine, XCircle, Check } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  PenLine,
+  XCircle,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { DraftField } from "../../types";
 
 interface SignerActionPanelProps {
@@ -12,6 +19,7 @@ interface SignerActionPanelProps {
   onComplete: () => void;
   onReject: () => void;
   isSubmitting?: boolean;
+  isRejectting?: boolean;
 }
 
 export default function SignerActionPanel({
@@ -22,6 +30,7 @@ export default function SignerActionPanel({
   onComplete,
   onReject,
   isSubmitting = false,
+  isRejectting = false,
 }: SignerActionPanelProps) {
   const assignedFields = fields.filter(
     (field) => field.signerId === currentSignerId,
@@ -106,26 +115,50 @@ export default function SignerActionPanel({
       <div className="pt-4 border-t border-gray-100 mt-auto space-y-3">
         <button
           onClick={onComplete}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isAllCompleted}
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition
             ${
-              isAllCompleted
+              isAllCompleted && !isSubmitting
                 ? "bg-black text-white hover:opacity-90"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }
           `}
         >
-          <Check size={16} />
-          Sign Document
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Signing...
+            </>
+          ) : (
+            <>
+              <Check size={16} />
+              Sign Document
+            </>
+          )}
         </button>
 
         <button
           onClick={onReject}
-          disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition"
+          disabled={isRejectting}
+          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition
+            ${
+              isRejectting
+                ? "text-red-400 bg-red-50 cursor-not-allowed"
+                : "text-red-600 bg-red-50 hover:bg-red-100"
+            }
+          `}
         >
-          <XCircle size={16} />
-          Reject Document
+          {isRejectting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Rejecting...
+            </>
+          ) : (
+            <>
+              <XCircle size={16} />
+              Reject Document
+            </>
+          )}
         </button>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import DraftWorkspace from "@/src/modules/document/components/workspace/DraftWorkspace";
 import SignWorkspace from "@/src/modules/document/components/workspace/SignWorkspace";
+import RevokedWorkspace from "@/src/modules/document/components/workspace/RevokeWorkspace";
 import { useParams, useRouter } from "next/navigation";
 import { getDocumentLayoutApi } from "@/lib/api/DocumentApi";
 import { FileQuestion, ArrowLeft } from "lucide-react";
@@ -66,6 +67,10 @@ export default function Workspace() {
 
   if (status === "PENDING") {
     return <SignWorkspace documentId={documentId} />;
+  }
+
+  if (status === "REVOKED") {
+    return <RevokedWorkspace documentId={documentId} />;
   }
 
   return (

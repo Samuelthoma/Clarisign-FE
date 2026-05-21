@@ -3,8 +3,9 @@ import { DraftField } from "../types";
 import { useFields } from "./useFields";
 import { useSigners } from "./useSigners";
 import { useAuthStore } from "@/src/store/AuthStore";
-import { signDocumentApi } from "@/lib/api/DocumentApi";
+import { rejectDocumentApi, signDocumentApi } from "@/lib/api/DocumentApi";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function useSignWorkspace(documentId: string) {
   const { fields } = useFields(documentId, false);
@@ -16,6 +17,9 @@ export function useSignWorkspace(documentId: string) {
     null,
   );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isRejectting, setIsRejectting] = useState<boolean>(false);
+
+  const router = useRouter();
 
   const openSignModal = (field: DraftField) => {
     setActiveSignField(field);
@@ -80,19 +84,26 @@ export function useSignWorkspace(documentId: string) {
   };
 
   const rejectDocument = async () => {
-    setIsSubmitting(true);
+    setIsRejectting(true);
     try {
-      /* TODO: Replace with your actual Spring Boot API POST endpoint
-        Example:
-        await axios.post(`/api/v1/documents/${documentId}/reject`);
-      */
-      console.log("Rejecting document...");
+      await rejectDocumentApi(documentId);
+      toast.success("Document has been rejected");
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error(err);
 
-      // router.push('/dashboard');
-    } catch (error) {
-      console.error("Failed to reject document:", error);
+      let message = "Failed to reject document";
+
+      try {
+        const parsed = JSON.parse(err.message);
+        message = parsed?.message || message;
+      } catch {
+        message = err.message || message;
+      }
+
+      toast.error(message);
     } finally {
-      setIsSubmitting(false);
+      setIsRejectting(false);
     }
   };
 
@@ -102,6 +113,7 @@ export function useSignWorkspace(documentId: string) {
     currentSignerId,
     signatures,
     isSubmitting,
+    isRejectting,
     activeSignField,
     openSignModal,
     closeSignModal,

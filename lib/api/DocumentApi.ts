@@ -90,3 +90,9 @@ export const signDocumentApi = async (
     },
   });
 };
+
+export const rejectDocumentApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/reject`, {
+    method: "POST",
+  });
+};
