@@ -1,5 +1,5 @@
 import { SaveDraftPayload, SignDocumentPayload } from "@/src/types/Document";
-import { apiFetch } from "./Client";
+import { apiFetch, fastApiFetch } from "./Client";
 
 export const uploadDocumentApi = async (file: File) => {
   const formData = new FormData();
@@ -94,5 +94,15 @@ export const signDocumentApi = async (
 export const rejectDocumentApi = async (documentId: string) => {
   return apiFetch(`/api/v1/documents/${documentId}/reject`, {
     method: "POST",
+  });
+};
+
+export const verifyDocument = async (file: File) => {
+  const formData = new FormData();
+  formData.append("request", file);
+
+  return fastApiFetch("/verify", {
+    method: "POST",
+    body: formData,
   });
 };
