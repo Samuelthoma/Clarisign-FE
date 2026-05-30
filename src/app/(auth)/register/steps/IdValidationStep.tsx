@@ -14,7 +14,11 @@ import { format, parse } from "date-fns";
 
 interface IdValidationStepProps {
   ocrData: any;
-  onNext: () => void;
+  onNext: (data: {
+    nik: string;
+    nama: string;
+    tanggalLahir: Date | undefined;
+  }) => void;
 }
 
 export default function IdValidationStep({
@@ -41,6 +45,11 @@ export default function IdValidationStep({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNext(formData);
+  };
+
   return (
     <>
       <h2 className="text-2xl font-bold mb-2 text-foreground">
@@ -52,7 +61,7 @@ export default function IdValidationStep({
         incorrect.
       </p>
 
-      <form className="space-y-6">
+      <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
           <label
             htmlFor="nik"
@@ -136,7 +145,7 @@ export default function IdValidationStep({
 
         <div className="pt-6">
           <button
-            type="button"
+            type="submit"
             className="
               w-full bg-primary text-primary-foreground
               py-2 rounded

@@ -43,6 +43,31 @@ export const verifyOtpApi = async (email: string, otp: string) => {
   });
 };
 
+export const updateKycStatusApi = async (data: {
+  email: string;
+  nik: string;
+  fullName: string;
+  dateOfBirth: string;
+  idCardImageUrl: string;
+  selfieImageUrl: string;
+  isKycValid: boolean;
+}) => {
+  return apiFetch("/api/v1/auth/validate-kyc", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const uploadFaceImageApi = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return fastApiFetch("/users/face", {
+    method: "POST",
+    body: formData,
+  });
+};
+
 export const idCardOcrApi = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);

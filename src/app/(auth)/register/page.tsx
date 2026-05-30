@@ -9,20 +9,91 @@ import IdUploadStep from "./steps/IdUploadStep";
 import IdValidationStep from "./steps/IdValidationStep";
 import LivenessDetectionStep from "./steps/LivenessDetectionStep";
 import VerificationPendingStep from "./steps/VerificationPendingStep";
+import { format } from "date-fns";
+import { updateKycStatusApi, uploadFaceImageApi } from "@/lib/api/AuthApi";
+
+interface OcrData {
+  NIK: string;
+  Nama: string;
+  DOB: string;
+  idCardImageUrl?: string;
+}
+
+interface VerifiedIdData {
+  nik: string;
+  nama: string;
+  tanggalLahir: Date | undefined;
+}
+
+interface RegisterDataState {
+  email: string;
+  ocrData: OcrData | null;
+  verifiedIdData: VerifiedIdData | null;
+}
 
 export default function RegisterPage() {
   const [devMode, setDevMode] = useState(true);
 
   const [currentStep, setCurrentStep] = useState(0);
 
-  const [registerData, setRegisterData] = useState({
+  const [registerData, setRegisterData] = useState<RegisterDataState>({
     email: "",
-    ocrData: Object,
+    ocrData: null,
+    verifiedIdData: null,
   });
+
+  const [isSubmittingKyc, setIsSubmittingKyc] = useState(false);
+
+  const handleFinalKycSubmission = async (base64FaceImage: string) => {
+    if (
+      !registerData.ocrData ||
+      !registerData.verifiedIdData ||
+      !registerData.verifiedIdData.tanggalLahir
+    ) {
+      console.error("Missing required registration data. Cannot submit KYC.");
+      return;
+    }
+
+    try {
+      setIsSubmittingKyc(true);
+
+      const res = await fetch(base64FaceImage);
+      const blob = await res.blob();
+      const imageFile = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+
+      const uploadRes = await uploadFaceImageApi(imageFile);
+
+      const selfieObjectId = uploadRes.url;
+
+      const formattedDob = format(
+        registerData.verifiedIdData.tanggalLahir,
+        "yyyy-MM-dd",
+      );
+
+      const finalPayload = {
+        email: registerData.email,
+        nik: registerData.verifiedIdData.nik,
+        fullName: registerData.verifiedIdData.nama,
+        dateOfBirth: formattedDob,
+        idCardImageUrl:
+        registerData.ocrData.idCardImageUrl || "missing-id-card-url",
+        selfieImageUrl: selfieObjectId,
+        isKycValid: true,
+      };
+      console.log(finalPayload)
+      await updateKycStatusApi(finalPayload);
+
+      setCurrentStep(5);
+    } catch (error) {
+      console.error("Failed KYC submission:", error);
+    } finally {
+      setIsSubmittingKyc(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-muted/60 via-background to-background">
-      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-2xl w-full h-[520px]">
+      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-2xl w-full min-h-[520px]">
         <div className="w-full p-8 flex flex-col justify-center">
           {currentStep === 0 && (
             <AccountStep
@@ -56,10 +127,16 @@ export default function RegisterPage() {
           {currentStep === 3 && (
             <IdValidationStep
               ocrData={registerData.ocrData}
-              onNext={() => setCurrentStep(4)}
+              onNext={(validatedData) => {
+                setRegisterData((prev) => ({
+                  ...prev,
+                  verifiedIdData: validatedData,
+                }));
+                setCurrentStep(4);
+              }}
             />
           )}
-          {currentStep === 4 && <LivenessDetectionStep />}
+          {currentStep === 4 && <LivenessDetectionStep isSubmitting={isSubmittingKyc} onNext={handleFinalKycSubmission} />}
           {currentStep === 5 && <VerificationPendingStep />}
         </div>
       </div>
