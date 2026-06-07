@@ -68,6 +68,17 @@ export const uploadFaceImageApi = async (file: File) => {
   });
 };
 
+export const setPasswordApi = async (data: {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}) => {
+  return apiFetch("/api/v1/auth/set-password", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
 export const idCardOcrApi = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);

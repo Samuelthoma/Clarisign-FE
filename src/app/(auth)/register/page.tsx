@@ -8,9 +8,14 @@ import OtpStep from "./steps/OtpStep";
 import IdUploadStep from "./steps/IdUploadStep";
 import IdValidationStep from "./steps/IdValidationStep";
 import LivenessDetectionStep from "./steps/LivenessDetectionStep";
-import VerificationPendingStep from "./steps/VerificationPendingStep";
 import { format } from "date-fns";
-import { updateKycStatusApi, uploadFaceImageApi } from "@/lib/api/AuthApi";
+import {
+  setPasswordApi,
+  updateKycStatusApi,
+  uploadFaceImageApi,
+} from "@/lib/api/AuthApi";
+import PasswordSetupStep from "./steps/SetPasswordStep";
+import { useRouter } from "next/navigation";
 
 interface OcrData {
   NIK: string;
@@ -33,7 +38,7 @@ interface RegisterDataState {
 
 export default function RegisterPage() {
   const [devMode, setDevMode] = useState(true);
-
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
 
   const [registerData, setRegisterData] = useState<RegisterDataState>({
@@ -76,11 +81,11 @@ export default function RegisterPage() {
         fullName: registerData.verifiedIdData.nama,
         dateOfBirth: formattedDob,
         idCardImageUrl:
-        registerData.ocrData.idCardImageUrl || "missing-id-card-url",
+          registerData.ocrData.idCardImageUrl || "missing-id-card-url",
         selfieImageUrl: selfieObjectId,
         isKycValid: true,
       };
-      console.log(finalPayload)
+      console.log(finalPayload);
       await updateKycStatusApi(finalPayload);
 
       setCurrentStep(5);
@@ -88,6 +93,24 @@ export default function RegisterPage() {
       console.error("Failed KYC submission:", error);
     } finally {
       setIsSubmittingKyc(false);
+    }
+  };
+
+  const handleSetPassword = async (
+    password: string,
+    confirmPassword: string,
+  ) => {
+    try {
+      const passwordPayload = {
+        email: registerData.email,
+        password: password,
+        confirmPassword: confirmPassword,
+      };
+
+      await setPasswordApi(passwordPayload);
+      router.replace("/login");
+    } catch (err) {
+      console.log("Failed to set password", err);
     }
   };
 
@@ -136,8 +159,15 @@ export default function RegisterPage() {
               }}
             />
           )}
-          {currentStep === 4 && <LivenessDetectionStep isSubmitting={isSubmittingKyc} onNext={handleFinalKycSubmission} />}
-          {currentStep === 5 && <VerificationPendingStep />}
+          {currentStep === 4 && (
+            <LivenessDetectionStep
+              isSubmitting={isSubmittingKyc}
+              onNext={handleFinalKycSubmission}
+            />
+          )}
+          {currentStep === 5 && (
+            <PasswordSetupStep handleSetPassword={handleSetPassword} />
+          )}
         </div>
       </div>
 
