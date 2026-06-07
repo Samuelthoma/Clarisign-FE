@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { X, Eraser } from "lucide-react";
 import { SignatureMode } from "../../types";
 import { Caveat } from "next/font/google";
+import SignaturePad from "signature_pad";
 
 interface SignatureModalProps {
   isOpen: boolean;
@@ -27,99 +28,58 @@ export default function SignatureModal({
   const [typedName, setTypedName] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isDrawing = useRef(false);
+  const signaturePadRef = useRef<SignaturePad | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setTypedName("");
-      clearCanvas();
+      signaturePadRef.current?.clear();
     }
   }, [isOpen, mode]);
 
-  if (!isOpen) return null;
-
-  const startDrawing = (
-    e:
-      | React.MouseEvent<HTMLCanvasElement>
-      | React.TouchEvent<HTMLCanvasElement>,
-  ) => {
-    isDrawing.current = true;
-    draw(e);
-  };
-
-  const stopDrawing = () => {
-    isDrawing.current = false;
+  useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) ctx.beginPath();
-    }
-  };
 
-  const draw = (
-    e:
-      | React.MouseEvent<HTMLCanvasElement>
-      | React.TouchEvent<HTMLCanvasElement>,
-  ) => {
-    if (!isDrawing.current) return;
+    if (!canvas || !isOpen) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    let x = 0;
-    let y = 0;
-
-    if ("touches" in e) {
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
-    } else {
-      x = (e as React.MouseEvent).clientX - rect.left;
-      y = (e as React.MouseEvent).clientY - rect.top;
-    }
-
-    ctx.lineWidth = 5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#000000";
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  };
-
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
     if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(ratio, ratio);
     }
-  };
+
+    signaturePadRef.current = new SignaturePad(canvas, {
+      minWidth: 0.8,
+      maxWidth: 2.5,
+      penColor: "#000000",
+      velocityFilterWeight: 0.7,
+    });
+
+    return () => {
+      signaturePadRef.current?.off();
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleSave = () => {
     if (mode === "DRAWN") {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const signaturePad = signaturePadRef.current;
 
-      const isCanvasBlank = (canvas: HTMLCanvasElement) => {
-        const context = canvas.getContext("2d");
-        if (!context) return true;
-        const pixelBuffer = new Uint32Array(
-          context.getImageData(0, 0, canvas.width, canvas.height).data.buffer,
-        );
-        return !pixelBuffer.some((color) => color !== 0);
-      };
+      if (!signaturePad) return;
 
-      if (isCanvasBlank(canvas)) {
+      if (signaturePad.isEmpty()) {
         alert("Please draw your signature before saving.");
         return;
       }
 
-      const dataUrl = canvas.toDataURL("image/png");
+      const dataUrl = signaturePad.toDataURL("image/png");
+
       onConfirm(dataUrl);
     }
 
@@ -172,24 +132,11 @@ export default function SignatureModal({
             <div className="w-full relative">
               <canvas
                 ref={canvasRef}
-                width={400}
-                height={200}
-                onMouseDown={startDrawing}
-                onMouseUp={stopDrawing}
-                onMouseOut={stopDrawing}
-                onMouseMove={draw}
-                onTouchStart={startDrawing}
-                onTouchEnd={stopDrawing}
-                onTouchCancel={stopDrawing}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  draw(e);
-                }}
-                className="w-full h-[200px] bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair touch-none"
+                className="w-full h-[200px] bg-white border-2 border-dashed border-gray-300 rounded-lg touch-none"
               />
               <div className="absolute bottom-3 right-3">
                 <button
-                  onClick={clearCanvas}
+                  onClick={() => signaturePadRef.current?.clear()}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50 hover:text-red-600 transition"
                 >
                   <Eraser size={14} />
