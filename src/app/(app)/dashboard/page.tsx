@@ -15,6 +15,9 @@ import {
 } from "@/lib/api/DocumentApi";
 import { toast } from "sonner";
 
+import { useAuthStore } from "@/src/store/AuthStore";
+import { StatusBadge } from "@/src/lib/BadgeHelper";
+
 interface RecentDocument {
   id: string;
   documentName: string;
@@ -32,6 +35,8 @@ export default function DashboardHome() {
   const [isDragging, setIsDragging] = useState(false);
   const [documents, setDocuments] = useState<RecentDocument[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(true);
+
+  const { user } = useAuthStore();
 
   const fetchDocuments = async () => {
     try {
@@ -62,9 +67,12 @@ export default function DashboardHome() {
       const res = await uploadDocumentApi(file);
       router.push(`/document/${res.data}`);
     } catch (err: any) {
-      toast("File size exceeds 10 MB. Please upload a file smaller than 10 MB.", {
-        position: "top-right",
-      });
+      toast(
+        "File size exceeds 10 MB. Please upload a file smaller than 10 MB.",
+        {
+          position: "top-right",
+        },
+      );
       setLoading(false);
     }
   };
@@ -92,13 +100,29 @@ export default function DashboardHome() {
   };
 
   return (
-    <div className="space-y-10">
-      <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-gray-800">Upload Document</h2>
-          <p className="text-sm text-gray-500">
-            Prepare a new PDF for signatures.
+    <div className="space-y-6 max-w-6xl">
+      <header className="pb-6 border-b border-slate-200 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            Welcome Back, {user?.name} 👋
+          </h1>
+          <p className="text-slate-500 mt-1.5 text-lg font-medium">
+            Let's start signing. Track your pending requests or send a new
+            document securely.
           </p>
+        </div>
+      </header>
+
+      <section>
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h2 className="text-md font-semibold text-slate-900 tracking-tight">
+            Create a New Signing Request
+          </h2>
+
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60 w-fit">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+            Step 1: Upload PDF
+          </div>
         </div>
 
         <div
@@ -107,43 +131,48 @@ export default function DashboardHome() {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={`
-            relative flex flex-col items-center justify-center w-full p-10 
-            border-2 border-dashed rounded-xl transition-all duration-200 ease-in-out bg-white
-            ${loading ? "bg-gray-50 border-gray-200 cursor-not-allowed" : "cursor-pointer shadow-sm"}
-            ${
-              isDragging
-                ? "border-blue-500 bg-blue-50 scale-[1.01]"
-                : "border-gray-300 hover:border-blue-400 hover:shadow-md"
-            }
-          `}
+          relative flex flex-col items-center justify-center w-full p-12 
+          border-2 border-dashed rounded-2xl transition-all duration-300 ease-out bg-white
+          ${loading ? "bg-slate-50 border-slate-200 cursor-not-allowed" : "cursor-pointer shadow-sm hover:shadow-md"}
+          ${
+            isDragging
+              ? "border-indigo-500 bg-indigo-50/50 scale-[1.01]"
+              : "border-slate-300 hover:border-indigo-400 hover:bg-slate-50/50"
+          }
+        `}
         >
           {loading ? (
-            <div className="flex flex-col items-center text-blue-600">
-              <Loader2 size={40} className="animate-spin mb-4" />
-              <p className="text-sm font-medium text-gray-700">
+            <div className="flex flex-col items-center text-indigo-600">
+              <Loader2 size={44} className="animate-spin mb-4" />
+              <p className="text-sm font-semibold text-slate-700">
                 Initializing Workspace...
               </p>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-gray-500">
+            <div className="flex flex-col items-center text-slate-500">
               <div
-                className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors duration-200 ${
+                className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 transition-colors duration-300 shadow-sm ${
                   isDragging
-                    ? "bg-blue-100 text-blue-600"
-                    : "bg-gray-100 text-gray-600"
+                    ? "bg-indigo-100 text-indigo-600"
+                    : "bg-white text-slate-600 border border-slate-200"
                 }`}
               >
-                <UploadCloud size={28} />
+                <UploadCloud size={30} strokeWidth={1.5} />
               </div>
-              <p className="text-base font-medium text-gray-800 mb-1">
-                <span className="text-blue-600 hover:underline">
-                  Click to upload
+              <p className="text-base font-medium text-slate-800 mb-1.5">
+                <span className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer font-semibold">
+                  Click to browse
                 </span>{" "}
-                or drag and drop
+                or drag and drop here
               </p>
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mt-1">
-                PDF ONLY (Max 10MB)
-              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded uppercase tracking-widest ring-1 ring-inset ring-slate-200">
+                  PDF Only
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  Max 10MB
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -159,29 +188,34 @@ export default function DashboardHome() {
       </section>
 
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500">
+        <div className="mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
             Recent Documents
           </h2>
         </div>
 
-        <div className="bg-gray-100 border border-gray-200 rounded-2xl p-3 space-y-3">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           {documentsLoading ? (
-            <div className="p-10 flex items-center justify-center">
-              <Loader2 size={20} className="animate-spin text-gray-400" />
+            <div className="py-12 flex flex-col items-center justify-center">
+              <Loader2 size={24} className="animate-spin text-slate-400 mb-2" />
+              <span className="text-sm text-slate-500 font-medium">
+                Loading documents...
+              </span>
             </div>
           ) : documents.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-100">
-                <FileText size={20} className="text-gray-400" />
+            <div className="bg-white rounded-xl border border-slate-200 p-10 flex flex-col items-center justify-center shadow-sm">
+              <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 shadow-inner">
+                <FileText
+                  size={24}
+                  className="text-slate-400"
+                  strokeWidth={1.5}
+                />
               </div>
-
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-semibold text-slate-800">
                 No recent documents
               </p>
-
-              <p className="text-xs text-gray-500 mt-1">
-                Upload a PDF above to get started.
+              <p className="text-sm text-slate-500 mt-1 text-center max-w-xs">
+                Upload a PDF above to create your first signing request.
               </p>
             </div>
           ) : (
@@ -190,42 +224,51 @@ export default function DashboardHome() {
                 <button
                   key={doc.id}
                   onClick={() => router.push(`/document/${doc.id}`)}
-                  className="w-full grid grid-cols-[1fr_auto_auto] items-center gap-4 p-4 rounded-xl text-left transition bg-white border border-gray-400 hover:border-black hover:shadow-sm"
+                  // The card border is now slate-100 (softer) and it has a baseline shadow-sm
+                  className="w-full flex items-center justify-between gap-4 p-4 rounded-xl text-left transition-all duration-200 bg-white border border-slate-100 shadow-sm hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 group"
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
-                        <FileText size={18} className="text-gray-600" />
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-800 truncate">
-                            {doc.documentName}
-                          </p>
-
-                          {doc.isOwner && (
-                            <div
-                              title="You are the owner"
-                              className="flex items-center text-amber-500 shrink-0"
-                            >
-                              <Crown size={13} />
-                            </div>
-                          )}
-                        </div>
-
-                        <p className="text-xs text-gray-500 mt-1">
-                          {doc.signedCount}/{doc.totalSigners} signed
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-lg bg-indigo-50/50 border border-indigo-100/50 flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-colors">
+                      <FileText
+                        size={20}
+                        className="text-indigo-600"
+                        strokeWidth={1.5}
+                      />
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-full bg-gray-300 text-gray-700 font-medium border border-gray-700">
-                        {doc.status}
-                      </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-sm font-semibold text-slate-800 truncate">
+                          {doc.documentName}
+                        </p>
+                        {doc.isOwner && (
+                          <div
+                            title="You are the owner"
+                            className="flex items-center text-amber-500 shrink-0 bg-amber-50 p-1 rounded-md"
+                          >
+                            <Crown size={14} strokeWidth={2} />
+                          </div>
+                        )}
+                      </div>
 
-                      <ChevronRight size={18} className="text-gray-300" />
+                      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                        <span>
+                          {doc.signedCount} of {doc.totalSigners} signed
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-5 shrink-0">
+                    <div className="flex items-center gap-5 shrink-0">
+                      <StatusBadge status={doc.status} />
+
+                      <ChevronRight
+                        size={18}
+                        className="text-slate-300 group-hover:text-indigo-500 transition-colors"
+                        strokeWidth={2}
+                      />
                     </div>
                   </div>
                 </button>

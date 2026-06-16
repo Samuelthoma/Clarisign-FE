@@ -9,7 +9,7 @@ import {
   Settings,
   LogOut,
   FileText,
-  BadgeCheck
+  BadgeCheck,
 } from "lucide-react";
 import "@/src/styles/globals.css";
 import { logoutApi } from "@/lib/api/UserApi";
@@ -38,77 +38,109 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-[#f4f6f8] font-sans overflow-hidden">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-100">
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-            <FileText size={16} className="text-white" />
+    <div className="flex h-screen bg-slate-100 font-sans overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
+      <aside className="w-[260px] bg-white border-r border-slate-300 flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div className="h-[72px] flex items-center gap-3 px-6 border-b border-slate-100">
+          <div className="w-8 h-8 bg-linear-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md shadow-indigo-600/20 ring-1 ring-inset ring-white/20">
+            <FileText size={18} className="text-white" strokeWidth={2} />
           </div>
-          <span className="font-bold text-gray-900 tracking-tight text-lg">
+          <span className="font-bold text-slate-900 tracking-tight text-xl">
             Clarisign
           </span>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 mt-2">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <p className="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3">
             Workspace
           </p>
 
           <Link
             href="/dashboard"
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+            className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               pathname === "/dashboard"
-                ? "bg-blue-50 text-blue-700"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-indigo-50/80 text-indigo-700 ring-1 ring-inset ring-indigo-100/50"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             }`}
           >
-            <Home size={18} />
+            <Home
+              size={18}
+              strokeWidth={pathname === "/dashboard" ? 2.5 : 2}
+              className={
+                pathname === "/dashboard"
+                  ? "text-indigo-600"
+                  : "text-slate-400 group-hover:text-slate-600"
+              }
+            />
             Dashboard
           </Link>
 
           <Link
             href="/dashboard/audit"
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+            className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               pathname.includes("/dashboard/audit")
-                ? "bg-blue-50 text-blue-700"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-indigo-50/80 text-indigo-700 ring-1 ring-inset ring-indigo-100/50"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             }`}
           >
-            <Activity size={18} />
+            <Activity
+              size={18}
+              strokeWidth={pathname.includes("/dashboard/audit") ? 2.5 : 2}
+              className={
+                pathname.includes("/dashboard/audit")
+                  ? "text-indigo-600"
+                  : "text-slate-400 group-hover:text-slate-600"
+              }
+            />
             Audit Logs
           </Link>
 
           <Link
             href="/dashboard/verify"
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+            className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               pathname.includes("/dashboard/verify")
-                ? "bg-blue-50 text-blue-700"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-indigo-50/80 text-indigo-700 ring-1 ring-inset ring-indigo-100/50"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             }`}
           >
-            <BadgeCheck size={18} />
+            <BadgeCheck
+              size={18}
+              strokeWidth={pathname.includes("/dashboard/verify") ? 2.5 : 2}
+              className={
+                pathname.includes("/dashboard/verify")
+                  ? "text-indigo-600"
+                  : "text-slate-400 group-hover:text-slate-600"
+              }
+            />
             Verify Document
           </Link>
         </nav>
 
-        <div className="p-4 border-t border-gray-100 space-y-1">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-            <Settings size={18} />
+        <div className="p-4 border-t border-slate-100 space-y-1 bg-slate-50/30">
+          <button className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors">
+            <Settings
+              size={18}
+              className="text-slate-400 group-hover:text-slate-600 transition-colors"
+            />
             Settings
           </button>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <LogOut size={18} />
-            Log out
+            <LogOut
+              size={18}
+              className="text-slate-400 group-hover:text-red-500 transition-colors"
+            />
+            {isLoggingOut ? "Logging out..." : "Log out"}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="flex-1 overflow-auto p-8">{children}</div>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <div className="absolute top-0 left-0 right-0 h-8 bg-linear-to-b from-slate-100/50 to-transparent pointer-events-none z-0" />
+
+        <div className="flex-1 overflow-auto p-8 md:p-12 z-10">{children}</div>
       </main>
     </div>
   );

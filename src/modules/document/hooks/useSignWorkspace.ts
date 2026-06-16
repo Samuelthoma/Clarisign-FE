@@ -3,7 +3,11 @@ import { DraftField } from "../types";
 import { useFields } from "./useFields";
 import { useSigners } from "./useSigners";
 import { useAuthStore } from "@/src/store/AuthStore";
-import { rejectDocumentApi, signDocumentApi } from "@/lib/api/DocumentApi";
+import {
+  finalizeDocumentApi,
+  rejectDocumentApi,
+  signDocumentApi,
+} from "@/lib/api/DocumentApi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +22,7 @@ export function useSignWorkspace(documentId: string) {
   );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isRejectting, setIsRejectting] = useState<boolean>(false);
+  const [isFinalizing, setIsFinalizing] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -107,6 +112,31 @@ export function useSignWorkspace(documentId: string) {
     }
   };
 
+  const finalizeDocument = async () => {
+    setIsFinalizing(true);
+
+    try {
+      await finalizeDocumentApi(documentId);
+      toast.success("Document has been finalized");
+      router.refresh();
+    } catch (err: any) {
+      console.error(err);
+
+      let message = "Failed to finalize document";
+
+      try {
+        const parsed = JSON.parse(err.message);
+        message = parsed?.message || message;
+      } catch {
+        message = err.message || message;
+      }
+
+      toast.error(message);
+    } finally {
+      setIsFinalizing(false);
+    }
+  };
+
   return {
     fields,
     signers,
@@ -114,11 +144,13 @@ export function useSignWorkspace(documentId: string) {
     signatures,
     isSubmitting,
     isRejectting,
+    isFinalizing,
     activeSignField,
     openSignModal,
     closeSignModal,
     confirmSignature,
     submitDocument,
     rejectDocument,
+    finalizeDocument
   };
 }

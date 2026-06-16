@@ -7,6 +7,7 @@ import RevokedWorkspace from "@/src/modules/document/components/workspace/Revoke
 import { useParams, useRouter } from "next/navigation";
 import { getDocumentLayoutApi } from "@/lib/api/DocumentApi";
 import { FileQuestion, ArrowLeft } from "lucide-react";
+import CompletedWorkspace from "@/src/modules/document/components/workspace/FinalWorkspace";
 
 export default function Workspace() {
   const params = useParams();
@@ -71,6 +72,10 @@ export default function Workspace() {
 
   if (status === "REVOKED") {
     return <RevokedWorkspace documentId={documentId} />;
+  }
+
+  if (status === "FINALIZED") {
+    return <CompletedWorkspace documentId={documentId} />;
   }
 
   return (

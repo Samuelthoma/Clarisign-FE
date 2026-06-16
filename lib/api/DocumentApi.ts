@@ -97,6 +97,12 @@ export const rejectDocumentApi = async (documentId: string) => {
   });
 };
 
+export const finalizeDocumentApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/finalize`, {
+    method: "POST",
+  });
+};
+
 export const verifyDocument = async (file: File) => {
   const formData = new FormData();
   formData.append("request", file);

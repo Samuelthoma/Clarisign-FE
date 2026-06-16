@@ -33,6 +33,10 @@ export default function SignWorkspace({ documentId }: Props) {
 
   const sign = useSignWorkspace(documentId);
 
+  const isCurrentUserOwner = sign.signers.some(
+    (signer) => signer.id === sign.currentSignerId && signer.isOwner,
+  );
+
   useEffect(() => {
     const fetchDocument = async () => {
       setIsLoading(true);
@@ -118,7 +122,11 @@ export default function SignWorkspace({ documentId }: Props) {
               onNavigateToField={handleNavigateToField}
               onComplete={sign.submitDocument}
               onReject={sign.rejectDocument}
+              onFinalize={sign.finalizeDocument}
               isSubmitting={sign.isSubmitting}
+              isRejectting={sign.isRejectting}
+              isFinalizing={sign.isFinalizing}
+              isOwner={isCurrentUserOwner}
             />
           }
           center={
