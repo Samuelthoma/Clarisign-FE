@@ -8,8 +8,10 @@ import {
   FileText,
   ChevronRight,
   Crown,
+  Download,
 } from "lucide-react";
 import {
+  getDocumentLogApi,
   getRecentDocumentListApi,
   uploadDocumentApi,
 } from "@/lib/api/DocumentApi";
@@ -49,6 +51,24 @@ export default function DashboardHome() {
       console.error(err);
     } finally {
       setDocumentsLoading(false);
+    }
+  };
+
+  const handleDownloadAuditLog = async (documentId: string, documentName: string) => {
+    try {
+      const { url } = await getDocumentLogApi(documentId);
+      const link = document.createElement("a");
+      link.href = url;
+
+      const safeName = documentName.replace(/\s+/g, '-').toLowerCase();
+      link.download = `${safeName}-audit-log.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download audit log:", error);
     }
   };
 
@@ -221,11 +241,10 @@ export default function DashboardHome() {
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => (
-                <button
+                <div
                   key={doc.id}
                   onClick={() => router.push(`/document/${doc.id}`)}
-                  // The card border is now slate-100 (softer) and it has a baseline shadow-sm
-                  className="w-full flex items-center justify-between gap-4 p-4 rounded-xl text-left transition-all duration-200 bg-white border border-slate-100 shadow-sm hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 group"
+                  className="w-full flex items-center justify-between gap-4 p-4 rounded-xl text-left transition-all duration-200 bg-white border border-indigo-300 shadow-sm hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 group cursor-pointer"
                 >
                   <div className="flex items-center gap-4 min-w-0">
                     <div className="w-12 h-12 rounded-lg bg-indigo-50/50 border border-indigo-100/50 flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-colors">
@@ -260,18 +279,27 @@ export default function DashboardHome() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-5 shrink-0">
-                    <div className="flex items-center gap-5 shrink-0">
-                      <StatusBadge status={doc.status} />
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusBadge status={doc.status} />
 
-                      <ChevronRight
-                        size={18}
-                        className="text-slate-300 group-hover:text-indigo-500 transition-colors"
-                        strokeWidth={2}
-                      />
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadAuditLog(doc.id, doc.documentName);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    >
+                      <Download size={14} strokeWidth={2} />
+                      <span>Audit Log</span>
+                    </button>
+
+                    <ChevronRight
+                      size={18}
+                      className="text-slate-300 group-hover:text-indigo-500 transition-colors ml-1"
+                      strokeWidth={2}
+                    />
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
