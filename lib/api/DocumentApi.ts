@@ -5,16 +5,20 @@ export const uploadDocumentApi = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  return apiFetch("/api/v1/documents", {
+  const response = await apiFetch("/api/v1/documents", {
     method: "POST",
     body: formData,
   });
+
+  return response.outputSchema
 };
 
 export const getRecentDocumentListApi = async () => {
-  return apiFetch("/api/v1/documents", {
+  const response = await apiFetch("/api/v1/documents", {
     method: "GET",
   });
+
+  return response.outputSchema
 };
 
 export const getDocumentFileApi = async (documentId: string) => {
@@ -41,9 +45,11 @@ export const getDocumentLogApi = async (documentId: string) => {
 };
 
 export const getDocumentCollaboratorsApi = async (documentId: string) => {
-  return apiFetch(`/api/v1/documents/${documentId}/collaborators`, {
+  const response = await apiFetch(`/api/v1/documents/${documentId}/collaborators`, {
     method: "GET",
   });
+
+  return response.outputSchema
 };
 
 export const addDocumentCollaboratorApi = async (
@@ -67,9 +73,11 @@ export const removeDocumentCollaboratorApi = async (
 };
 
 export const getDocumentLayoutApi = async (documentId: string) => {
-  return apiFetch(`/api/v1/documents/${documentId}/draft`, {
+  const response = await apiFetch(`/api/v1/documents/${documentId}/draft`, {
     method: "GET",
   });
+
+  return await response.outputSchema
 };
 
 export const saveDraftDocumentApi = async (

@@ -91,7 +91,7 @@ export default function DashboardLayout({
                   : "text-slate-400 group-hover:text-slate-600"
               }
             />
-            Audit Logs
+            Activity Logs
           </Link>
 
           <Link

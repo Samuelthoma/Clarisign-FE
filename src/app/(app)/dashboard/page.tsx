@@ -85,7 +85,7 @@ export default function DashboardHome() {
     try {
       setLoading(true);
       const res = await uploadDocumentApi(file);
-      router.push(`/document/${res.data}`);
+      router.push(`/document/${res}`);
     } catch (err: any) {
       toast(
         "File size exceeds 10 MB. Please upload a file smaller than 10 MB.",

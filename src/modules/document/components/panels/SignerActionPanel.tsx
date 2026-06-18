@@ -10,6 +10,17 @@ import {
   Send,
 } from "lucide-react";
 import { DraftField } from "../../types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface SignerActionPanelProps {
   fields: DraftField[];
@@ -49,6 +60,7 @@ export default function SignerActionPanel({
   ).length;
 
   const isAllCompletedLocally = totalCount > 0 && completedCount === totalCount;
+  const isProcessing = isSubmitting || isRejectting;
 
   const hasPendingAssignedFields = assignedFields.some(
     (f) => f.status !== "ACTIVE",
@@ -134,10 +146,10 @@ export default function SignerActionPanel({
           <>
             <button
               onClick={onComplete}
-              disabled={isSubmitting || !isAllCompletedLocally}
+              disabled={isProcessing || !isAllCompletedLocally}
               className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
                 ${
-                  isAllCompletedLocally && !isSubmitting
+                  isAllCompletedLocally && !isProcessing
                     ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"
                     : "bg-slate-100 text-slate-400 cursor-not-allowed"
                 }
@@ -156,29 +168,54 @@ export default function SignerActionPanel({
               )}
             </button>
 
-            <button
-              onClick={onReject}
-              disabled={isRejectting}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
-                ${
-                  isRejectting
-                    ? "text-rose-400 bg-rose-50 cursor-not-allowed"
-                    : "text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700"
-                }
-              `}
-            >
-              {isRejectting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Rejecting...
-                </>
-              ) : (
-                <>
-                  <XCircle size={16} strokeWidth={2.5} />
-                  Reject Document
-                </>
-              )}
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isProcessing}
+                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
+                    ${
+                      isProcessing
+                        ? "text-rose-400 bg-rose-50 cursor-not-allowed"
+                        : "text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700"
+                    }
+                  `}
+                >
+                  {isRejectting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle size={16} strokeWidth={2.5} />
+                      Reject Document
+                    </>
+                  )}
+                </button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reject document?</AlertDialogTitle>
+
+                  <AlertDialogDescription>
+                    This action cannot be undone. The document will be marked as
+                    rejected and all participants will be notified.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                  <AlertDialogAction
+                    onClick={onReject}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Reject Document
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
 
