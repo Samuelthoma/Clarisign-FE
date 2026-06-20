@@ -31,6 +31,16 @@ export const getDocumentFileApi = async (documentId: string) => {
   return { url };
 };
 
+export const downloadDocumentFileApi = async (documentId: string) => {
+  const blob = await apiFetch(`/api/v1/documents/${documentId}/download`, {
+    method: "GET",
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(blob);
+
+  return { url };
+};
+
 export const getDocumentLogApi = async (documentId: string) => {
   const blob = await apiFetch(
     `/api/v1/audit-logs/documents/${documentId}/download`,
