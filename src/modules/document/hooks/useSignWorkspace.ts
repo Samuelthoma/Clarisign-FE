@@ -5,6 +5,7 @@ import { useSigners } from "./useSigners";
 import { useAuthStore } from "@/src/store/AuthStore";
 import {
   finalizeDocumentApi,
+  generateSignatureNonceApi,
   rejectDocumentApi,
   signDocumentApi,
 } from "@/lib/api/DocumentApi";
@@ -47,6 +48,7 @@ export function useSignWorkspace(documentId: string) {
 
   const submitDocument = async () => {
     setIsSubmitting(true);
+    const nonce = await generateSignatureNonceApi(documentId);
 
     try {
       const payload = {
@@ -59,9 +61,11 @@ export function useSignWorkspace(documentId: string) {
             relY: field.y,
             relWidth: field.width,
             relHeight: field.height,
-            documentType: field.mode as "TYPED" | "DRAWN",
+            signatureType: field.mode as "TYPED" | "DRAWN",
             signatureContent: signatures[field.id],
           })),
+
+        nonce: nonce.nonce,
       };
 
       if (payload.signatures.length === 0) {
@@ -152,6 +156,6 @@ export function useSignWorkspace(documentId: string) {
     confirmSignature,
     submitDocument,
     rejectDocument,
-    finalizeDocument
+    finalizeDocument,
   };
 }

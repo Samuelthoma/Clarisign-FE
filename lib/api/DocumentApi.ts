@@ -10,7 +10,7 @@ export const uploadDocumentApi = async (file: File) => {
     body: formData,
   });
 
-  return response.outputSchema
+  return response.outputSchema;
 };
 
 export const getRecentDocumentListApi = async () => {
@@ -18,7 +18,7 @@ export const getRecentDocumentListApi = async () => {
     method: "GET",
   });
 
-  return response.outputSchema
+  return response.outputSchema;
 };
 
 export const getDocumentFileApi = async (documentId: string) => {
@@ -55,11 +55,14 @@ export const getDocumentLogApi = async (documentId: string) => {
 };
 
 export const getDocumentCollaboratorsApi = async (documentId: string) => {
-  const response = await apiFetch(`/api/v1/documents/${documentId}/collaborators`, {
-    method: "GET",
-  });
+  const response = await apiFetch(
+    `/api/v1/documents/${documentId}/collaborators`,
+    {
+      method: "GET",
+    },
+  );
 
-  return response.outputSchema
+  return response.outputSchema;
 };
 
 export const addDocumentCollaboratorApi = async (
@@ -87,7 +90,7 @@ export const getDocumentLayoutApi = async (documentId: string) => {
     method: "GET",
   });
 
-  return await response.outputSchema
+  return await response.outputSchema;
 };
 
 export const saveDraftDocumentApi = async (
@@ -107,6 +110,14 @@ export const publishDocumentApi = async (documentId: string) => {
   return apiFetch(`/api/v1/documents/${documentId}/publish`, {
     method: "POST",
   });
+};
+
+export const generateSignatureNonceApi = async (documentId: string) => {
+  const response = await apiFetch(`/api/v1/documents/${documentId}/signatures/nonce`, {
+    method: "POST",
+  });
+  
+  return response.outputSchema
 };
 
 export const signDocumentApi = async (

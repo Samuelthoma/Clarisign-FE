@@ -25,7 +25,7 @@ export type Signatures = {
   relY: number;
   relWidth: number;
   relHeight: number;
-  documentType: "TYPED" | "DRAWN";
+  signatureType: "TYPED" | "DRAWN";
   signatureContent: string;
 }
 

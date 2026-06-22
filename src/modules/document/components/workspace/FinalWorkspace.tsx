@@ -13,7 +13,10 @@ import {
 
 import PanelLayout from "../panels/PanelLayout";
 import RightPanel from "../panels/RightPanel";
-import { downloadDocumentFileApi, getDocumentFileApi } from "@/lib/api/DocumentApi";
+import {
+  downloadDocumentFileApi,
+  getDocumentFileApi,
+} from "@/lib/api/DocumentApi";
 
 import { useSignWorkspace } from "../../hooks/useSignWorkspace";
 import FieldBox from "../ui/field";
@@ -30,7 +33,6 @@ export default function CompletedWorkspace({ documentId }: Props) {
   const router = useRouter();
 
   const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [downloadDocument, setDownloadDocument] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -58,37 +60,27 @@ export default function CompletedWorkspace({ documentId }: Props) {
     fetchDocument();
   }, [documentId]);
 
-  useEffect(() => {
-    const fetchDownloadDocument = async () => {
-      setIsLoading(true);
+  const handleDownload = async () => {
+    setIsLoading(true);
 
-      try {
-        const res = await downloadDocumentFileApi(documentId);
+    try {
+      const res = await downloadDocumentFileApi(documentId);
 
-        if (!res?.url) {
-          throw new Error("Document URL not found");
-        }
-
-        setFileUrl(res.url);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+      if (!res?.url) {
+        throw new Error("Document URL not found");
       }
-    };
 
-    fetchDownloadDocument();
-  }, [documentId]);
-
-  const handleDownload = () => {
-    if (fileUrl) {
       const link = document.createElement("a");
-      link.href = fileUrl;
+      link.href = res.url;
       link.download = `Signed_Document_${documentId}.pdf`;
-      link.target = "_blank";
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 

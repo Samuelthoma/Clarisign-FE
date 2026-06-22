@@ -132,7 +132,7 @@ export default function ActivityLogTable() {
 
           <Button
             variant="outline"
-            className="flex items-center gap-2 border-slate-200 shadow-sm"
+            className="flex items-center gap-2 border-gray-300 shadow-sm bg-blue-100 hover:bg-blue-200 hover:border-gray-400"
             onClick={handleDownloadPdf}
             disabled={isDownloading || loading || logs.length === 0}
           >

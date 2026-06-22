@@ -82,7 +82,7 @@ export async function authFetch(path: string, options: RequestInit = {}) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     console.error("AUTH ERROR:", { url, status: res.status, body: text });
-    throw signApiErrorParser(text, res.status); // sign-api
+    throw signApiErrorParser(text, res.status);
   }
 
   return res;
@@ -99,11 +99,10 @@ export function apiFetch(
       ...(options.headers || {}),
     },
     ...options,
-    errorParser: signApiErrorParser, // sign-api → parser baru
+    errorParser: signApiErrorParser,
   });
 }
 
 export function fastApiFetch(path: string, options: RequestInit = {}) {
-  // Tanpa errorParser → pakai rawErrorParser = perilaku ASLI, Python tidak tersentuh.
   return baseFetch(config.FAST_API_BASE_URL as string, path, options);
 }

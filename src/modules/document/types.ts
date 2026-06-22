@@ -9,7 +9,8 @@ import {
   PenTool,
   XCircle,
   CheckCircle2,
-  Download
+  Download,
+  ClipboardList,
 } from "lucide-react";
 
 export type FieldType = "SIGNATURE";
@@ -59,7 +60,8 @@ export type UserActionType =
   | "SIGN_DOCUMENT"
   | "REJECT_DOCUMENT"
   | "FINALIZE_DOCUMENT"
-  | "DOWNLOAD_DOCUMENT";
+  | "DOWNLOAD_DOCUMENT"
+  | "DOWNLOAD_AUDIT_LOG";
 
 export const ActionTypeLabels: Record<UserActionType, string> = {
   LOGIN: "Login",
@@ -73,6 +75,7 @@ export const ActionTypeLabels: Record<UserActionType, string> = {
   REJECT_DOCUMENT: "Reject Document",
   FINALIZE_DOCUMENT: "Finalize Document",
   DOWNLOAD_DOCUMENT: "Download Document",
+  DOWNLOAD_AUDIT_LOG: "Download Audit Log",
 };
 
 export const ActionStyleConfig: Record<
@@ -122,6 +125,10 @@ export const ActionStyleConfig: Record<
   DOWNLOAD_DOCUMENT: {
     icon: Download,
     colorClass: "bg-slate-100 text-slate-800 border-slate-200",
+  },
+  DOWNLOAD_AUDIT_LOG: {
+    icon: ClipboardList,
+    colorClass: "bg-purple-100 text-purple-800 border-purple-200",
   },
 };
 
