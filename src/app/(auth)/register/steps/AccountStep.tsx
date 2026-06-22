@@ -1,25 +1,21 @@
 import { useState } from "react";
-import { registerApi } from "../../../../../lib/api/AuthApi";
 
 type AccountStepProps = {
   onNext: (data: { email: string }) => void;
+  isSubmitting: boolean;
+  error?: string;
 };
 
-export default function AccountStep({ onNext }: AccountStepProps) {
+export default function AccountStep({
+  onNext,
+  isSubmitting,
+  error,
+}: AccountStepProps) {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      onNext({ email });
-      await registerApi(email);
-    } catch (err: any) {
-      setError(err.message);
-    }
+    onNext({ email });
   };
 
   return (
@@ -55,11 +51,11 @@ export default function AccountStep({ onNext }: AccountStepProps) {
 
         <div className="pt-2">
           <button
-            disabled={isLoading}
+            disabled={isSubmitting}
             type="submit"
-            className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors"
+            className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Send Verification Code
+            {isSubmitting ? "Sending..." : "Send Verification Code"}
           </button>
         </div>
       </form>

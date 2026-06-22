@@ -1,18 +1,17 @@
-"use client";
-
-import { registerApi, verifyOtpApi } from "@/lib/api/AuthApi";
 import React, { useEffect, useRef, useState } from "react";
 
 type OtpStepProps = {
   email: string;
-  onNext: () => void;
+  onVerify: (otp: string) => void;
+  onResend: () => void;
+  isSubmitting: boolean;
+  error?: string;
 };
 
 const RESEND_OTP_COOLDOWN = 60;
 
-export default function OtpStep({ email, onNext }: OtpStepProps) {
+export default function OtpStep({ email, onVerify, onResend, isSubmitting, error }: OtpStepProps) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
-  const [error, setError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(RESEND_OTP_COOLDOWN);
 
   useEffect(() => {
@@ -37,6 +36,13 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
+
+    if (value && index === 5) {
+      const otpString = newOtp.join("");
+      if (otpString.length === 6) {
+        onVerify(otpString);
+      }
+    }
   };
 
   const handleKeyDown = (
@@ -55,6 +61,7 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
     if (!/^\d+$/.test(paste)) return;
 
     const newOtp = paste.split("");
+    while (newOtp.length < 6) newOtp.push("");
     setOtp(newOtp);
 
     newOtp.forEach((char, index) => {
@@ -65,32 +72,15 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
     });
 
     inputsRef.current[Math.min(paste.length, 6) - 1]?.focus();
-  };
 
-  const resendOtp = async () => {
-    try {
-      setError("");
-      await registerApi(email);
-      setResendCooldown(RESEND_OTP_COOLDOWN);
-    } catch (error: any) {
-      setError(error.message);
+    if (paste.length === 6) {
+      onVerify(paste);
     }
   };
 
-  const verifyOtp = async () => {
-    const otpValue = otp.join("");
-
-    try {
-      setError("");
-      const res = await verifyOtpApi(email, otpValue);
-      if (res.code == 200) {
-        onNext();
-      } else {
-        setError(res.message);
-      }
-    } catch (error: any) {
-      setError(error.message);
-    }
+  const handleResendClick = () => {
+    setResendCooldown(RESEND_OTP_COOLDOWN);
+    onResend();
   };
 
   return (
@@ -120,6 +110,7 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
             type="text"
             inputMode="numeric"
             maxLength={1}
+            disabled={isSubmitting}
             aria-label={`OTP digit ${i + 1}`}
             onChange={(e) => handleChange(e.target.value, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
@@ -131,6 +122,7 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
               text-foreground
               focus:outline-none focus:border-primary
               transition-colors
+              disabled:opacity-50 disabled:cursor-not-allowed
             "
           />
         ))}
@@ -138,20 +130,21 @@ export default function OtpStep({ email, onNext }: OtpStepProps) {
 
       <div className="space-y-4">
         <button
-          onClick={() => verifyOtp()}
+          onClick={() => onVerify(otp.join(""))}
+          disabled={isSubmitting || otp.join("").length < 6}
           type="button"
-          className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors"
+          className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Verify
+          {isSubmitting ? "Verifying..." : "Verify"}
         </button>
 
         <p className="text-center text-sm text-muted-foreground">
           Didn’t receive the code?{" "}
           <button
             type="button"
-            disabled={resendCooldown > 0}
-            onClick={() => resendOtp()}
-            className="text-primary font-medium underline underline-offset-2 hover:text-primary/90"
+            disabled={resendCooldown > 0 || isSubmitting}
+            onClick={handleResendClick}
+            className="text-primary font-medium underline underline-offset-2 hover:text-primary/90 disabled:no-underline disabled:text-muted-foreground"
           >
             {resendCooldown > 0 
               ? `Resend in 00:${resendCooldown.toString().padStart(2, "0")}` 

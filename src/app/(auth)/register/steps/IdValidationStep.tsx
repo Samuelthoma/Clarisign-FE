@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -9,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, parse } from "date-fns";
 
 interface IdValidationStepProps {
@@ -36,19 +34,40 @@ export default function IdValidationStep({
   };
 
   const [formData, setFormData] = useState({
-    nik: ocrData?.NIK,
-    nama: ocrData?.Nama,
+    nik: ocrData?.NIK || "",
+    nama: ocrData?.Nama || "",
     tanggalLahir: parseDate(ocrData?.DOB),
   });
 
+  useEffect(() => {
+    setFormData({
+      nik: ocrData?.NIK || "",
+      nama: ocrData?.Nama || "",
+      tanggalLahir: parseDate(ocrData?.DOB),
+    });
+  }, [ocrData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    if (name === "nik") {
+      const numericValue = value.replace(/\D/g, "").slice(0, 16);
+      setFormData((prev) => ({ ...prev, [name]: numericValue }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNext(formData);
   };
+
+  const isFormValid =
+    formData.nik?.length === 16 &&
+    formData.nama?.trim().length > 0 &&
+    formData.tanggalLahir !== undefined;
 
   return (
     <>
@@ -75,6 +94,7 @@ export default function IdValidationStep({
             value={formData.nik}
             onChange={handleChange}
             type="text"
+            inputMode="numeric"
             placeholder="e.g. 3201XXXXXXXXXXXX"
             className="
               w-full py-2 bg-transparent
@@ -146,11 +166,13 @@ export default function IdValidationStep({
         <div className="pt-6">
           <button
             type="submit"
+            disabled={!isFormValid}
             className="
               w-full bg-primary text-primary-foreground
               py-2 rounded
               hover:bg-primary/90
               transition-colors
+              disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
             Confirm & Continue

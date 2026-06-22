@@ -1,11 +1,10 @@
-"use client";
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 interface LivenessDetectionStepProps {
   onNext: (base64Image: string) => void;
   isSubmitting?: boolean;
+  error?: string;
 }
 
 const RIGHT_EYE = [33, 160, 158, 133, 153, 144];
@@ -70,6 +69,7 @@ const BASE_CHALLENGES = [
 export default function LivenessDetectionStep({
   onNext,
   isSubmitting,
+  error,
 }: LivenessDetectionStepProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraReady, setCameraReady] = useState(false);
@@ -267,7 +267,7 @@ export default function LivenessDetectionStep({
     }));
     configuredChallenges.push({
       id: "done",
-      instruction: "Liveness verified successfully! ✅",
+      instruction: "Liveness verified successfully!",
     });
 
     activeChallengesRef.current = configuredChallenges;
@@ -341,6 +341,12 @@ export default function LivenessDetectionStep({
       </div>
 
       <div className="pt-6 space-y-3">
+        {error && (
+          <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-sm">
+            {error}
+          </div>
+        )}
+
         {validationStatus === "idle" && (
           <button
             type="button"

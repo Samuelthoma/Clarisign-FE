@@ -1,47 +1,34 @@
-"use client";
-
-import { idCardOcrApi } from "@/lib/api/AuthApi";
 import React, { useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 interface IdUploadStepProps {
-  onNext: (extractedData: any) => void; 
+  onUpload: (file: File) => void;
+  isSubmitting: boolean;
+  error?: string;
 }
 
-export default function IdUploadStep({ onNext }: IdUploadStepProps) {
+export default function IdUploadStep({
+  onUpload,
+  isSubmitting,
+  error,
+}: IdUploadStepProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSelectedFile(file);
-    setError(null); 
 
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!selectedFile) return;
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      const result = await idCardOcrApi(selectedFile);
-      console.log(result.extracted_data);
-      
-      onNext(result.extracted_data); 
-    } catch (err) {
-      console.error("OCR API failed:", err);
-      setError("We had trouble reading your ID. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
+    onUpload(selectedFile);
   };
 
   return (
@@ -56,14 +43,14 @@ export default function IdUploadStep({ onNext }: IdUploadStepProps) {
       </p>
 
       <div
-        onClick={() => !isProcessing && inputRef.current?.click()}
+        onClick={() => !isSubmitting && inputRef.current?.click()}
         className={`
           flex flex-col items-center justify-center
           w-full h-28
           border border-dashed border-muted-foreground/40
           rounded-sm
           transition-colors
-          ${isProcessing ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary"}
+          ${isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary"}
         `}
       >
         <span className="text-sm text-muted-foreground">
@@ -80,7 +67,7 @@ export default function IdUploadStep({ onNext }: IdUploadStepProps) {
         accept="image/png, image/jpeg"
         className="hidden"
         onChange={handleFileChange}
-        disabled={isProcessing}
+        disabled={isSubmitting}
       />
 
       {previewUrl && (
@@ -95,7 +82,7 @@ export default function IdUploadStep({ onNext }: IdUploadStepProps) {
               border border-border
               bg-muted
               transition-opacity
-              ${isProcessing ? "opacity-50" : "opacity-100"}
+              ${isSubmitting ? "opacity-50" : "opacity-100"}
             `}
           />
         </div>
@@ -124,7 +111,7 @@ export default function IdUploadStep({ onNext }: IdUploadStepProps) {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!previewUrl || isProcessing}
+          disabled={!previewUrl || isSubmitting}
           className="
             w-full bg-primary text-primary-foreground py-2 rounded 
             hover:bg-primary/90 transition-colors
@@ -132,8 +119,8 @@ export default function IdUploadStep({ onNext }: IdUploadStepProps) {
             flex items-center justify-center gap-2
           "
         >
-          {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isProcessing ? "Verifying..." : "Continue"}
+          {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isSubmitting ? "Verifying..." : "Continue"}
         </button>
       </div>
     </>

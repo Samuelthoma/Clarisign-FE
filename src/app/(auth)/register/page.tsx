@@ -10,9 +10,12 @@ import IdValidationStep from "./steps/IdValidationStep";
 import LivenessDetectionStep from "./steps/LivenessDetectionStep";
 import { format } from "date-fns";
 import {
+  idCardOcrApi,
+  registerApi,
   setPasswordApi,
   updateKycStatusApi,
   uploadFaceImageApi,
+  verifyOtpApi,
 } from "@/lib/api/AuthApi";
 import PasswordSetupStep from "./steps/SetPasswordStep";
 import { useRouter } from "next/navigation";
@@ -37,8 +40,8 @@ interface RegisterDataState {
 }
 
 export default function RegisterPage() {
-  const [devMode, setDevMode] = useState(true);
   const router = useRouter();
+  const [devMode, setDevMode] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
 
   const [registerData, setRegisterData] = useState<RegisterDataState>({
@@ -47,7 +50,73 @@ export default function RegisterPage() {
     verifiedIdData: null,
   });
 
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [isSubmittingKyc, setIsSubmittingKyc] = useState(false);
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
+
+  const [emailError, setEmailError] = useState<string | undefined>();
+  const [otpError, setOtpError] = useState<string | undefined>();
+  const [ocrError, setOcrError] = useState<string | undefined>();
+  const [kycError, setKycError] = useState<string | undefined>();
+  const [passwordError, setPasswordError] = useState<string | undefined>();
+
+  const handleEmailSubmit = async (data: { email: string }) => {
+    setIsRequestingOtp(true);
+    setEmailError(undefined);
+
+    try {
+      const response = await registerApi(data.email);
+
+      if (response.errorSchema.code === "200") {
+        setRegisterData((prev) => ({
+          ...prev,
+          email: data.email,
+        }));
+        setCurrentStep(1);
+      } else {
+        setEmailError(response.errorSchema.message);
+      }
+    } catch (error: any) {
+      console.error("Failed to request OTP:", error);
+      setEmailError(
+        error.message || "Failed to send verification code. Please try again.",
+      );
+    } finally {
+      setIsRequestingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (otpValue: string) => {
+    setIsVerifyingOtp(true);
+    setOtpError(undefined);
+
+    try {
+      const res = await verifyOtpApi(registerData.email, otpValue);
+
+      if (res.code == 200 || res.errorSchema?.code === "200") {
+        setCurrentStep(2);
+      } else {
+        setOtpError(
+          res.message || res.errorSchema?.message || "Invalid OTP code.",
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to verify OTP:", error);
+      setOtpError(error.message || "Failed to verify code. Please try again.");
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await registerApi(registerData.email);
+    } catch (error: any) {
+      console.error("Failed to resend OTP:", error);
+    }
+  };
 
   const handleFinalKycSubmission = async (base64FaceImage: string) => {
     if (
@@ -56,18 +125,19 @@ export default function RegisterPage() {
       !registerData.verifiedIdData.tanggalLahir
     ) {
       console.error("Missing required registration data. Cannot submit KYC.");
+      setKycError("Missing required data. Please review previous steps.");
       return;
     }
 
     try {
       setIsSubmittingKyc(true);
+      setKycError(undefined);
 
       const res = await fetch(base64FaceImage);
       const blob = await res.blob();
       const imageFile = new File([blob], "selfie.jpg", { type: "image/jpeg" });
 
       const uploadRes = await uploadFaceImageApi(imageFile);
-
       const selfieObjectId = uploadRes.url;
 
       const formattedDob = format(
@@ -85,14 +155,42 @@ export default function RegisterPage() {
         selfieImageUrl: selfieObjectId,
         isKycValid: true,
       };
+
       console.log(finalPayload);
       await updateKycStatusApi(finalPayload);
 
       setCurrentStep(5);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed KYC submission:", error);
+      setKycError(
+        error.message || "Failed to submit verification. Please try again.",
+      );
     } finally {
       setIsSubmittingKyc(false);
+    }
+  };
+
+  const handleIdUpload = async (file: File) => {
+    setIsProcessingOcr(true);
+    setOcrError(undefined);
+
+    try {
+      const result = await idCardOcrApi(file);
+
+      setRegisterData((prev) => ({
+        ...prev,
+        ocrData: result.extracted_data,
+        idCardImageUrl: result.url
+      }));
+
+      setCurrentStep(3);
+    } catch (err: any) {
+      console.error("OCR API failed:", err);
+      setOcrError(
+        "We had trouble reading your ID. Please ensure the image is clear and try again.",
+      );
+    } finally {
+      setIsProcessingOcr(false);
     }
   };
 
@@ -100,6 +198,9 @@ export default function RegisterPage() {
     password: string,
     confirmPassword: string,
   ) => {
+    setIsSettingPassword(true);
+    setPasswordError(undefined);
+
     try {
       const passwordPayload = {
         email: registerData.email,
@@ -109,8 +210,13 @@ export default function RegisterPage() {
 
       await setPasswordApi(passwordPayload);
       router.replace("/login");
-    } catch (err) {
+    } catch (err: any) {
       console.log("Failed to set password", err);
+      setPasswordError(
+        err.message || "Failed to set password. Please try again.",
+      );
+    } finally {
+      setIsSettingPassword(false);
     }
   };
 
@@ -120,31 +226,26 @@ export default function RegisterPage() {
         <div className="w-full p-8 flex flex-col justify-center">
           {currentStep === 0 && (
             <AccountStep
-              onNext={(data) => {
-                setRegisterData((prev) => ({
-                  ...prev,
-                  email: data.email,
-                }));
-                setCurrentStep(1);
-              }}
+              isSubmitting={isRequestingOtp}
+              error={emailError}
+              onNext={handleEmailSubmit}
             />
           )}
 
           {currentStep === 1 && (
             <OtpStep
-              onNext={() => setCurrentStep(2)}
               email={registerData.email}
+              isSubmitting={isVerifyingOtp}
+              error={otpError}
+              onVerify={handleVerifyOtp}
+              onResend={handleResendOtp}
             />
           )}
           {currentStep === 2 && (
             <IdUploadStep
-              onNext={(data) => {
-                setCurrentStep(3);
-                setRegisterData((prev) => ({
-                  ...prev,
-                  ocrData: data,
-                }));
-              }}
+              isSubmitting={isProcessingOcr}
+              error={ocrError}
+              onUpload={handleIdUpload}
             />
           )}
           {currentStep === 3 && (
@@ -162,11 +263,16 @@ export default function RegisterPage() {
           {currentStep === 4 && (
             <LivenessDetectionStep
               isSubmitting={isSubmittingKyc}
+              error={kycError}
               onNext={handleFinalKycSubmission}
             />
           )}
           {currentStep === 5 && (
-            <PasswordSetupStep handleSetPassword={handleSetPassword} />
+            <PasswordSetupStep
+              isSubmitting={isSettingPassword}
+              error={passwordError}
+              handleSetPassword={handleSetPassword}
+            />
           )}
         </div>
       </div>
