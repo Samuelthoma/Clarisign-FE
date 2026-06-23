@@ -10,6 +10,27 @@ export interface GetDocumentsParams {
   status?: string;
 }
 
+export interface DocumentProgressResponse {
+  documentId: string;
+  documentName: string;
+  documentStatus: string;
+  totalSigners: number;
+  signedCount: number;
+  currentOrder: number | null;
+  currentSignerEmail: string | null;
+  steps: {
+    order: number;
+    email: string;
+    status: string;
+  }[];
+  you: {
+    order: number;
+    status: string;
+    yourTurn: boolean;
+    signer: boolean;
+  };
+}
+
 export const uploadDocumentApi = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -41,6 +62,16 @@ export const getRecentDocumentListApi = async (params: GetDocumentsParams) => {
   );
 
   return response.outputSchema;
+};
+
+export const getDocumentProgressApi = async (
+  documentId: string,
+): Promise<DocumentProgressResponse> => {
+  const res = await apiFetch(`/api/v1/documents/${documentId}/progress`, {
+    method: "GET",
+  });
+
+  return res.outputSchema;
 };
 
 export const getDocumentFileApi = async (documentId: string) => {

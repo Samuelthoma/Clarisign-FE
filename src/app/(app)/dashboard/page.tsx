@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DocumentProgressModal from "@/src/modules/document/components/modals/DocumentProgressModal";
 
 interface RecentDocument {
   id: string;
@@ -55,6 +56,7 @@ export default function DashboardHome() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
+  const [progressModalId, setProgressModalId] = useState<string | null>(null);
 
   const { user } = useAuthStore();
 
@@ -372,6 +374,17 @@ export default function DashboardHome() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProgressModalId(doc.id);
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:text-indigo-700 transition-colors focus:outline-none"
+                      >
+                        <Clock size={14} strokeWidth={2} />
+                        <span>Track</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           handleDownloadAuditLog(doc.id, doc.documentName);
                         }}
                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
@@ -437,6 +450,11 @@ export default function DashboardHome() {
           )}
         </div>
       </section>
+      <DocumentProgressModal
+        documentId={progressModalId}
+        isOpen={progressModalId !== null}
+        onClose={() => setProgressModalId(null)}
+      />
     </div>
   );
 }

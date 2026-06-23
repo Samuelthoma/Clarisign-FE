@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
   const handleEmailSubmit = async (data: { email: string }) => {
     setIsRequestingOtp(true);
-    setEmailError(undefined); // Clear any previous errors
+    setEmailError(undefined);
 
     try {
       const response = await registerApi(data.email);
@@ -201,8 +201,10 @@ export default function RegisterPage() {
 
       setRegisterData((prev) => ({
         ...prev,
-        ocrData: result.extracted_data,
-        idCardImageUrl: result.url,
+        ocrData: {
+          ...result.extracted_data,
+          idCardImageUrl: result.url,
+        },
       }));
 
       setCurrentStep(3);

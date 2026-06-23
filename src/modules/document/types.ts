@@ -51,7 +51,7 @@ export type Signer = {
 
 export type UserActionType =
   | "LOGIN"
-  | "LOGOUT"
+  // | "LOGOUT"
   | "UPLOAD_DOCUMENT"
   | "ADD_COLLABORATOR"
   | "REMOVE_COLLABORATOR"
@@ -65,7 +65,7 @@ export type UserActionType =
 
 export const ActionTypeLabels: Record<UserActionType, string> = {
   LOGIN: "Login",
-  LOGOUT: "Logout",
+  // LOGOUT: "Logout",
   UPLOAD_DOCUMENT: "Upload Document",
   ADD_COLLABORATOR: "Add Collaborator",
   REMOVE_COLLABORATOR: "Remove Collaborator",
@@ -86,10 +86,10 @@ export const ActionStyleConfig: Record<
     icon: LogIn,
     colorClass: "bg-emerald-100 text-emerald-800 border-emerald-200",
   },
-  LOGOUT: {
-    icon: LogOut,
-    colorClass: "bg-slate-100 text-slate-800 border-slate-200",
-  },
+  // LOGOUT: {
+  //   icon: LogOut,
+  //   colorClass: "bg-slate-100 text-slate-800 border-slate-200",
+  // },
   UPLOAD_DOCUMENT: {
     icon: Upload,
     colorClass: "bg-blue-100 text-blue-800 border-blue-200",
