@@ -1,6 +1,15 @@
 import { SaveDraftPayload, SignDocumentPayload } from "@/src/types/Document";
 import { apiFetch, fastApiFetch } from "./Client";
 
+export interface GetDocumentsParams {
+  page: number;
+  size: number;
+  param?: string;
+  type?: string;
+  name?: string;
+  status?: string;
+}
+
 export const uploadDocumentApi = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -13,10 +22,23 @@ export const uploadDocumentApi = async (file: File) => {
   return response.outputSchema;
 };
 
-export const getRecentDocumentListApi = async () => {
-  const response = await apiFetch("/api/v1/documents", {
-    method: "GET",
-  });
+export const getRecentDocumentListApi = async (params: GetDocumentsParams) => {
+  const queryParams = new URLSearchParams();
+
+  queryParams.append("page", params.page.toString());
+  queryParams.append("size", params.size.toString());
+
+  if (params.param) queryParams.append("param", params.param);
+  if (params.type) queryParams.append("type", params.type);
+  if (params.name) queryParams.append("name", params.name);
+  if (params.status) queryParams.append("status", params.status);
+
+  const response = await apiFetch(
+    `/api/v1/documents?${queryParams.toString()}`,
+    {
+      method: "GET",
+    },
+  );
 
   return response.outputSchema;
 };
@@ -113,11 +135,14 @@ export const publishDocumentApi = async (documentId: string) => {
 };
 
 export const generateSignatureNonceApi = async (documentId: string) => {
-  const response = await apiFetch(`/api/v1/documents/${documentId}/signatures/nonce`, {
-    method: "POST",
-  });
-  
-  return response.outputSchema
+  const response = await apiFetch(
+    `/api/v1/documents/${documentId}/signatures/nonce`,
+    {
+      method: "POST",
+    },
+  );
+
+  return response.outputSchema;
 };
 
 export const signDocumentApi = async (

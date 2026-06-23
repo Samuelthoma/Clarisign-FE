@@ -17,10 +17,13 @@ export default function AuthProvider({
       try {
         const me = await getCurrentUserApi();
         setUser(me);
-      } catch (error) {
-        setUser(null);
+      } catch (error: any) {
+        if (error?.status !== 401 && error?.status !== 403) {
+          console.warn("Auth check failed:", error?.message);
+        }
+        setUser(null); 
       } finally {
-        setLoading(false);
+        setLoading(false); 
       }
     };
 

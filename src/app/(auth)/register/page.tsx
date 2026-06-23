@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
   const handleEmailSubmit = async (data: { email: string }) => {
     setIsRequestingOtp(true);
-    setEmailError(undefined);
+    setEmailError(undefined); // Clear any previous errors
 
     try {
       const response = await registerApi(data.email);
@@ -74,7 +74,29 @@ export default function RegisterPage() {
           ...prev,
           email: data.email,
         }));
-        setCurrentStep(1);
+
+        const status = response.outputSchema?.registrationStatus;
+
+        switch (status) {
+          case "PENDING_OTP":
+            setCurrentStep(1);
+            if (response.outputSchema?.otpSent === false) {
+              handleResendOtp();
+            }
+            break;
+
+          case "PENDING_KYC":
+            setCurrentStep(2);
+            break;
+
+          case "PENDING_PASSWORD":
+            setCurrentStep(5);
+            break;
+
+          default:
+            setCurrentStep(1);
+            break;
+        }
       } else {
         setEmailError(response.errorSchema.message);
       }
@@ -180,7 +202,7 @@ export default function RegisterPage() {
       setRegisterData((prev) => ({
         ...prev,
         ocrData: result.extracted_data,
-        idCardImageUrl: result.url
+        idCardImageUrl: result.url,
       }));
 
       setCurrentStep(3);
