@@ -129,17 +129,17 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <header className="h-16 bg-white border-b border-gray-200 flex items-center shrink-0">
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-gray-800">
+      <header className="h-16 bg-background border-b flex items-center shrink-0">
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             PDF Signature Verification
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-slate-500 mt-1.5 text-lg font-medium">
             Verify digital signatures and certificate integrity.
           </p>
         </div>
       </header>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6 my-8">
         <Card className="rounded-xl shadow-sm border-0">
           <CardContent className="p-6 space-y-6">
             <div
