@@ -16,6 +16,7 @@ import SignatureAssignmentModal from "../modals/SignatureAssignmentModal";
 import { useDraftWorkspace } from "../../hooks/useDraftWorkspace";
 import { toast } from "sonner";
 import { useAuthStore } from "@/src/store/AuthStore";
+import { useRouter } from "next/navigation";
 
 interface Props {
   documentId: string;
@@ -24,6 +25,7 @@ interface Props {
 const Viewer = dynamic(() => import("../viewer/DraftViewer"), { ssr: false });
 
 export default function DraftWorkspace({ documentId }: Props) {
+  const router = useRouter();
   const [activeTool, setActiveTool] = useState<{
     type: FieldType;
     mode: SignatureMode;
@@ -126,7 +128,7 @@ export default function DraftWorkspace({ documentId }: Props) {
           </p>
           <button
             onClick={() => {
-              navigation.navigate("/dashboard");
+              router.replace("/login");
             }}
             className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-md font-medium transition"
           >
