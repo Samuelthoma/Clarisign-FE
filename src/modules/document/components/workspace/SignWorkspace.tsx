@@ -10,7 +10,9 @@ import SignerActionPanel from "../panels/SignerActionPanel";
 import RightPanel from "../panels/RightPanel";
 import {
   getDocumentFileApi,
+  sendOtpSigningApi,
   verifyFaceIdentityApi,
+  verifyOtpSigningApi,
 } from "@/lib/api/DocumentApi";
 import { DraftField } from "../../types";
 
@@ -25,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import LivenessDetectionStep from "@/src/app/(auth)/register/steps/LivenessDetectionStep";
+import OtpStep from "@/src/app/(auth)/register/steps/OtpStep";
 
 interface Props {
   documentId: string;
@@ -34,6 +37,8 @@ const BaseViewer = dynamic(() => import("../viewer/BaseViewer"), {
   ssr: false,
 });
 
+type SecurityStep = "otp" | "liveness" | "face_verification";
+
 export default function SignWorkspace({ documentId }: Props) {
   const router = useRouter();
 
@@ -41,16 +46,23 @@ export default function SignWorkspace({ documentId }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const [isLivenessModalOpen, setIsLivenessModalOpen] = useState(false);
-  const [livenessError, setLivenessError] = useState<string | undefined>();
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState<SecurityStep>("otp");
 
-  const [isVerifyingFace, setIsVerifyingFace] = useState(false);
+  const [otpError, setOtpError] = useState<string | undefined>();
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+
+  const [livenessError, setLivenessError] = useState<string | undefined>();
 
   const sign = useSignWorkspace(documentId);
 
   const isCurrentUserOwner = sign.signers.some(
     (signer) => signer.id === sign.currentSignerId && signer.isOwner,
   );
+
+  const currentSigner = sign.signers.find((s) => s.id === sign.currentSignerId);
+  const currentUserEmail =
+    (currentSigner as any)?.email || "your email address";
 
   useEffect(() => {
     let currentObjectUrl: string | null = null;
@@ -105,15 +117,46 @@ export default function SignWorkspace({ documentId }: Props) {
     }
   };
 
-  const handleInitiateCompletion = () => {
+  const handleInitiateCompletion = async () => {
     setLivenessError(undefined);
-    setIsVerifyingFace(false);
-    setIsLivenessModalOpen(true);
+    setOtpError(undefined);
+    setCurrentStep("otp");
+    setIsSecurityModalOpen(true);
+
+    try {
+      await sendOtpSigningApi(documentId);
+    } catch (error) {
+      setOtpError("Failed to send verification code. Please try again.");
+    }
+  };
+
+  const handleOtpVerify = async (otpString: string) => {
+    setIsVerifyingOtp(true);
+    setOtpError(undefined);
+
+    try {
+      await verifyOtpSigningApi(documentId, otpString);
+      setCurrentStep("liveness");
+    } catch (error: any) {
+      setOtpError(
+        error.message || "Invalid verification code. Please try again.",
+      );
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleOtpResend = async () => {
+    setOtpError(undefined);
+    try {
+    } catch (error: any) {
+      setOtpError("Failed to resend code. Please try again.");
+    }
   };
 
   const handleLivenessSuccess = async (base64FaceImage: string) => {
     setLivenessError(undefined);
-    setIsVerifyingFace(true);
+    setCurrentStep("face_verification");
 
     try {
       const res = await fetch(base64FaceImage);
@@ -127,7 +170,7 @@ export default function SignWorkspace({ documentId }: Props) {
         imageFile,
       );
 
-      console.log(verificationResponse)
+      console.log(verificationResponse);
 
       if (verificationResponse.match !== true) {
         throw new Error(
@@ -137,15 +180,14 @@ export default function SignWorkspace({ documentId }: Props) {
 
       await sign.submitDocument();
 
-      setIsLivenessModalOpen(false);
+      setIsSecurityModalOpen(false);
     } catch (error: any) {
       console.error("Submission failed:", error);
       setLivenessError(
-        // error.message ||
+        error.message ||
           "Failed to verify identity and submit. Please try again.",
       );
-    } finally {
-      setIsVerifyingFace(false);
+      setCurrentStep("liveness");
     }
   };
 
@@ -243,15 +285,37 @@ export default function SignWorkspace({ documentId }: Props) {
         onConfirm={sign.confirmSignature}
       />
 
-      <Dialog open={isLivenessModalOpen} onOpenChange={setIsLivenessModalOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white p-6">
+      <Dialog open={isSecurityModalOpen} onOpenChange={setIsSecurityModalOpen}>
+        <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden bg-white p-6">
           <DialogTitle className="sr-only">Verify Identity</DialogTitle>
           <DialogDescription className="sr-only">
-            Please complete the liveness detection to verify your identity
-            before submitting the document.
+            Please complete the multi-step security checks to verify your
+            identity.
           </DialogDescription>
 
-          {isVerifyingFace ? (
+          {currentStep === "otp" && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <OtpStep
+                email={currentUserEmail}
+                onVerify={handleOtpVerify}
+                onResend={handleOtpResend}
+                isSubmitting={isVerifyingOtp}
+                error={otpError}
+              />
+            </div>
+          )}
+
+          {currentStep === "liveness" && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <LivenessDetectionStep
+                onNext={handleLivenessSuccess}
+                isSubmitting={sign.isSubmitting}
+                error={livenessError}
+              />
+            </div>
+          )}
+
+          {currentStep === "face_verification" && (
             <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center animate-in fade-in zoom-in duration-300">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               <div className="space-y-2">
@@ -264,12 +328,6 @@ export default function SignWorkspace({ documentId }: Props) {
                 </p>
               </div>
             </div>
-          ) : (
-            <LivenessDetectionStep
-              onNext={handleLivenessSuccess}
-              isSubmitting={sign.isSubmitting}
-              error={livenessError}
-            />
           )}
         </DialogContent>
       </Dialog>

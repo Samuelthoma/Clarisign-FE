@@ -308,7 +308,7 @@ export default function LivenessDetectionStep({
         {instruction}
       </div>
 
-      <div className="relative w-full aspect-3/4 md:aspect-video min-h-[400px] bg-muted/40 border border-border rounded-sm overflow-hidden shadow-sm ring-1 ring-black/5">
+      <div className="relative w-full h-[350px] sm:h-[400px] bg-black/5 border border-border rounded-xl overflow-hidden shadow-inner">
         <video
           ref={videoRef}
           muted

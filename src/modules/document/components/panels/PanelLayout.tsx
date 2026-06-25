@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { PanelLeft, PanelRight } from "lucide-react";
+import Link from "next/link";
+import { PanelLeft, PanelRight, Home } from "lucide-react";
 import "@/src/styles/globals.css";
 
 interface PanelLayoutProps {
   center: React.ReactNode;
-  
   left?: React.ReactNode;
   leftTitle?: string;
   leftIcon?: React.ReactNode;
@@ -64,8 +64,23 @@ export default function PanelLayout({
         </>
       )}
 
-      <div className="flex-1 min-w-0 flex items-center justify-center overflow-auto no-scrollbar relative">
-        {center}
+      <div className="flex-1 min-w-0 relative flex flex-col h-full">
+        <div className="absolute top-4 left-4 z-50">
+          <Link
+            href="/dashboard"
+            className="group flex items-center gap-2 px-3 py-2 bg-white text-sm font-medium text-muted-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:border-gray-300 hover:text-foreground hover:-translate-y-px active:translate-y-0 active:scale-95 transition-all duration-200"
+          >
+            <Home
+              size={16}
+              className="text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-transform duration-200"
+            />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+          </Link>
+        </div>
+
+        <div className="flex-1 overflow-auto no-scrollbar flex items-center justify-center">
+          {center}
+        </div>
       </div>
 
       {right && (

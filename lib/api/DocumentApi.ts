@@ -189,6 +189,19 @@ export const signDocumentApi = async (
   });
 };
 
+export const sendOtpSigningApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/signatures/otp`, {
+    method: "POST",
+  });
+};
+
+export const verifyOtpSigningApi = async (documentId: string, otp: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}/signatures/otp/verify`, {
+    method: "POST",
+    body: JSON.stringify({ otp }),
+  });
+};
+
 export const rejectDocumentApi = async (documentId: string) => {
   return apiFetch(`/api/v1/documents/${documentId}/reject`, {
     method: "POST",
