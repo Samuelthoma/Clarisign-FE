@@ -8,10 +8,23 @@ import { ArrowLeft, FileQuestion } from "lucide-react";
 import PanelLayout from "../panels/PanelLayout";
 import SignerActionPanel from "../panels/SignerActionPanel";
 import RightPanel from "../panels/RightPanel";
-import { getDocumentFileApi } from "@/lib/api/DocumentApi";
+import {
+  getDocumentFileApi,
+  verifyFaceIdentityApi,
+} from "@/lib/api/DocumentApi";
 import { DraftField } from "../../types";
 
 import { useSignWorkspace } from "../../hooks/useSignWorkspace";
+import FieldBox from "../ui/field";
+import SignatureModal from "../modals/SignatureModal";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import LivenessDetectionStep from "@/src/app/(auth)/register/steps/LivenessDetectionStep";
 
 interface Props {
   documentId: string;
@@ -20,16 +33,18 @@ interface Props {
 const BaseViewer = dynamic(() => import("../viewer/BaseViewer"), {
   ssr: false,
 });
-import FieldBox from "../ui/field";
-import SignatureModal from "../modals/SignatureModal";
 
 export default function SignWorkspace({ documentId }: Props) {
   const router = useRouter();
 
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const [isLivenessModalOpen, setIsLivenessModalOpen] = useState(false);
+  const [livenessError, setLivenessError] = useState<string | undefined>();
+
+  const [isVerifyingFace, setIsVerifyingFace] = useState(false);
 
   const sign = useSignWorkspace(documentId);
 
@@ -38,10 +53,13 @@ export default function SignWorkspace({ documentId }: Props) {
   );
 
   useEffect(() => {
+    let currentObjectUrl: string | null = null;
+
     const fetchDocument = async () => {
       setIsLoading(true);
       try {
         const res = await getDocumentFileApi(documentId);
+        currentObjectUrl = res.url;
         setFileUrl(res.url);
       } catch (err) {
         console.error(err);
@@ -51,6 +69,12 @@ export default function SignWorkspace({ documentId }: Props) {
     };
 
     fetchDocument();
+
+    return () => {
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+      }
+    };
   }, [documentId]);
 
   const handleNavigateToField = (field: DraftField) => {
@@ -78,6 +102,50 @@ export default function SignWorkspace({ documentId }: Props) {
           1500,
         );
       }
+    }
+  };
+
+  const handleInitiateCompletion = () => {
+    setLivenessError(undefined);
+    setIsVerifyingFace(false);
+    setIsLivenessModalOpen(true);
+  };
+
+  const handleLivenessSuccess = async (base64FaceImage: string) => {
+    setLivenessError(undefined);
+    setIsVerifyingFace(true);
+
+    try {
+      const res = await fetch(base64FaceImage);
+      const blob = await res.blob();
+      const imageFile = new File([blob], "verification.jpg", {
+        type: "image/jpeg",
+      });
+
+      const verificationResponse = await verifyFaceIdentityApi(
+        sign.currentSignerId,
+        imageFile,
+      );
+
+      console.log(verificationResponse)
+
+      if (verificationResponse.match !== true) {
+        throw new Error(
+          "Identity verification failed. Face does not match the registered user.",
+        );
+      }
+
+      await sign.submitDocument();
+
+      setIsLivenessModalOpen(false);
+    } catch (error: any) {
+      console.error("Submission failed:", error);
+      setLivenessError(
+        // error.message ||
+          "Failed to verify identity and submit. Please try again.",
+      );
+    } finally {
+      setIsVerifyingFace(false);
     }
   };
 
@@ -120,7 +188,7 @@ export default function SignWorkspace({ documentId }: Props) {
               currentSignerId={sign.currentSignerId}
               signatures={sign.signatures}
               onNavigateToField={handleNavigateToField}
-              onComplete={sign.submitDocument}
+              onComplete={handleInitiateCompletion}
               onReject={sign.rejectDocument}
               onFinalize={sign.finalizeDocument}
               isSubmitting={sign.isSubmitting}
@@ -174,6 +242,37 @@ export default function SignWorkspace({ documentId }: Props) {
         onClose={sign.closeSignModal}
         onConfirm={sign.confirmSignature}
       />
+
+      <Dialog open={isLivenessModalOpen} onOpenChange={setIsLivenessModalOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-white p-6">
+          <DialogTitle className="sr-only">Verify Identity</DialogTitle>
+          <DialogDescription className="sr-only">
+            Please complete the liveness detection to verify your identity
+            before submitting the document.
+          </DialogDescription>
+
+          {isVerifyingFace ? (
+            <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center animate-in fade-in zoom-in duration-300">
+              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold text-foreground">
+                  Liveness Verified!
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-[300px]">
+                  Please wait, the system is performing face recognition to
+                  confirm your identity...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <LivenessDetectionStep
+              onNext={handleLivenessSuccess}
+              isSubmitting={sign.isSubmitting}
+              error={livenessError}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

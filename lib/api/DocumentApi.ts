@@ -210,3 +210,14 @@ export const verifyDocument = async (file: File) => {
     body: formData,
   });
 };
+
+export const verifyFaceIdentityApi = async (userId: string, face: File) => {
+  const formData = new FormData();
+  formData.append("user_id", userId);
+  formData.append("current_face", face);
+
+  return fastApiFetch("/faces/verify", {
+    method: "POST",
+    body: formData,
+  });
+};

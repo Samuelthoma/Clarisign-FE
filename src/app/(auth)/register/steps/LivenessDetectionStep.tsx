@@ -108,7 +108,7 @@ export default function LivenessDetectionStep({
         }
       } catch (err) {
         console.error("Camera error:", err);
-        setInstruction("Camera access denied or unavailable.");
+        // setInstruction("Camera access denied or unavailable.");
       }
     };
     startCamera();
@@ -171,8 +171,10 @@ export default function LivenessDetectionStep({
       if (nextChallenge.id === "done") {
         setValidationStatus("success");
         setInstruction(nextChallenge.instruction);
-        if (capturedImageRef.current)
+        if (capturedImageRef.current) {
           setExtractedImage(capturedImageRef.current);
+          onNext(capturedImageRef.current);
+        }
         if (animationFrameRef.current)
           cancelAnimationFrame(animationFrameRef.current);
       } else {
@@ -367,28 +369,23 @@ export default function LivenessDetectionStep({
           </button>
         )}
 
-        {(validationStatus === "success" || validationStatus === "failed") && (
-          <>
-            {validationStatus === "success" && extractedImage && (
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onNext(extractedImage)}
-                className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                {isSubmitting
-                  ? "Uploading & Verifying..."
-                  : "Continue Verification"}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleStartValidation}
-              className="w-full bg-secondary text-secondary-foreground py-2 rounded border border-border hover:bg-secondary/80 transition-colors"
-            >
-              Retry Validation
-            </button>
-          </>
+        {validationStatus === "success" && isSubmitting && (
+          <button
+            disabled
+            className="w-full bg-primary text-primary-foreground py-2 rounded opacity-70 cursor-not-allowed"
+          >
+            Uploading & Verifying...
+          </button>
+        )}
+
+        {validationStatus === "failed" && (
+          <button
+            type="button"
+            onClick={handleStartValidation}
+            className="w-full bg-secondary text-secondary-foreground py-2 rounded border border-border hover:bg-secondary/80 transition-colors"
+          >
+            Retry Validation
+          </button>
         )}
       </div>
     </>

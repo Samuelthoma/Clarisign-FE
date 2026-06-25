@@ -160,7 +160,7 @@ export default function RegisterPage() {
       const imageFile = new File([blob], "selfie.jpg", { type: "image/jpeg" });
 
       const uploadRes = await uploadFaceImageApi(imageFile);
-      const selfieObjectId = uploadRes.url;
+      const selfieObjectId = uploadRes.objectId;
 
       const formattedDob = format(
         registerData.verifiedIdData.tanggalLahir,
@@ -203,7 +203,7 @@ export default function RegisterPage() {
         ...prev,
         ocrData: {
           ...result.extracted_data,
-          idCardImageUrl: result.url,
+          idCardImageUrl: result.key,
         },
       }));
 

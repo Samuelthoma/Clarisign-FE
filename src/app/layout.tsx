@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${fontSans.variable} ${fontMono.variable} antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
         <Toaster />
       </body>
     </html>
