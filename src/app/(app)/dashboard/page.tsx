@@ -152,17 +152,19 @@ export default function DashboardHome() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <header className="pb-6 border-b border-slate-200 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Welcome Back, {user?.name} 👋
-          </h1>
-          <p className="text-slate-500 mt-1.5 text-lg font-medium">
-            Let's start signing. Track your pending requests or send a new
-            document securely.
-          </p>
-        </div>
+    <div className="space-y-6 max-w-6xl mx-auto pb-8">
+      <header className="pb-2">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
+          Welcome back,{" "}
+          <span className="text-indigo-600">
+            {user?.name?.split(" ")[0] ?? "there"}
+          </span>{" "}
+          <span className="inline-block">👋</span>
+        </h1>
+        <p className="mt-2 max-w-2xl text-base font-normal leading-relaxed text-slate-500">
+          Let's start signing — track your pending requests or send a new
+          document securely.
+        </p>
       </header>
 
       <section>

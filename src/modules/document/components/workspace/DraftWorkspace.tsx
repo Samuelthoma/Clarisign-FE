@@ -10,6 +10,7 @@ import {
   saveDraftDocumentApi,
 } from "@/lib/api/DocumentApi";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, FileQuestion, Loader2 } from "lucide-react";
 import { FieldType, SignatureMode } from "../../types";
 import SignatureAssignmentModal from "../modals/SignatureAssignmentModal";
@@ -24,6 +25,7 @@ interface Props {
 const Viewer = dynamic(() => import("../viewer/DraftViewer"), { ssr: false });
 
 export default function DraftWorkspace({ documentId }: Props) {
+  const router = useRouter();
   const [activeTool, setActiveTool] = useState<{
     type: FieldType;
     mode: SignatureMode;
@@ -125,9 +127,7 @@ export default function DraftWorkspace({ documentId }: Props) {
             is incorrect.
           </p>
           <button
-            onClick={() => {
-              navigation.navigate("/dashboard");
-            }}
+            onClick={() => router.push("/dashboard")}
             className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-md font-medium transition"
           >
             <ArrowLeft size={18} />

@@ -69,36 +69,32 @@ export default function RegisterPage() {
     try {
       const response = await registerApi(data.email);
 
-      if (response.errorSchema.code === "200") {
-        setRegisterData((prev) => ({
-          ...prev,
-          email: data.email,
-        }));
+      setRegisterData((prev) => ({
+        ...prev,
+        email: data.email,
+      }));
 
-        const status = response.outputSchema?.registrationStatus;
+      const status = response.outputSchema?.registrationStatus;
 
-        switch (status) {
-          case "PENDING_OTP":
-            setCurrentStep(1);
-            if (response.outputSchema?.otpSent === false) {
-              handleResendOtp();
-            }
-            break;
+      switch (status) {
+        case "PENDING_OTP":
+          setCurrentStep(1);
+          if (response.outputSchema?.otpSent === false) {
+            handleResendOtp();
+          }
+          break;
 
-          case "PENDING_KYC":
-            setCurrentStep(2);
-            break;
+        case "PENDING_KYC":
+          setCurrentStep(2);
+          break;
 
-          case "PENDING_PASSWORD":
-            setCurrentStep(5);
-            break;
+        case "PENDING_PASSWORD":
+          setCurrentStep(5);
+          break;
 
-          default:
-            setCurrentStep(1);
-            break;
-        }
-      } else {
-        setEmailError(response.errorSchema.message);
+        default:
+          setCurrentStep(1);
+          break;
       }
     } catch (error: any) {
       console.error("Failed to request OTP:", error);
@@ -115,15 +111,8 @@ export default function RegisterPage() {
     setOtpError(undefined);
 
     try {
-      const res = await verifyOtpApi(registerData.email, otpValue);
-
-      if (res.code == 200 || res.errorSchema?.code === "200") {
-        setCurrentStep(2);
-      } else {
-        setOtpError(
-          res.message || res.errorSchema?.message || "Invalid OTP code.",
-        );
-      }
+      await verifyOtpApi(registerData.email, otpValue);
+      setCurrentStep(2);
     } catch (error: any) {
       console.error("Failed to verify OTP:", error);
       setOtpError(error.message || "Failed to verify code. Please try again.");
