@@ -59,7 +59,7 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
           collapsed ? "justify-center px-0" : "gap-3 px-6",
         )}
       >
-        <div className="w-9 h-9 bg-linear-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md shadow-indigo-600/20 ring-1 ring-inset ring-white/20 shrink-0">
+        <div className="size-9 aspect-square shrink-0 bg-linear-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md shadow-indigo-600/20 ring-1 ring-inset ring-white/20">
           <FileText size={18} className="text-white" strokeWidth={2} />
         </div>
         {!collapsed && (

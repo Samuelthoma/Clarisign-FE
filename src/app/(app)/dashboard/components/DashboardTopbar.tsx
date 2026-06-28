@@ -62,8 +62,8 @@ export default function DashboardTopbar({
         </h1>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden sm:flex flex-col items-end leading-tight">
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="hidden sm:flex flex-col items-end leading-tight min-w-0">
           <span className="text-sm font-semibold text-slate-800 truncate max-w-[200px]">
             {user?.name || "Welcome"}
           </span>
@@ -71,7 +71,7 @@ export default function DashboardTopbar({
             {user?.email || "Not signed in"}
           </span>
         </div>
-        <div className="w-9 h-9 rounded-full bg-linear-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-xs font-bold shadow-sm ring-1 ring-inset ring-white/20 shrink-0">
+        <div className="size-9 aspect-square shrink-0 rounded-full bg-linear-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-xs font-bold shadow-sm ring-1 ring-inset ring-white/20">
           {getInitials(user?.name, user?.email)}
         </div>
       </div>
