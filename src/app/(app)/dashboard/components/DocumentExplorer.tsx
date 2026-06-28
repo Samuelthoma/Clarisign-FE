@@ -2,17 +2,31 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Search, Layers, FileEdit, Clock, CheckCircle2, 
-  XCircle, Loader2, FileText, Crown, Download, ChevronRight 
+import {
+  Search,
+  Layers,
+  FileEdit,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  FileText,
+  Crown,
+  Download,
+  ChevronRight,
 } from "lucide-react";
 
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { getRecentDocumentListApi } from "@/lib/api/DocumentApi";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { getDocumentLogApi, getRecentDocumentListApi } from "@/lib/api/DocumentApi";
 import { RecentDocument } from "../page";
 import { StatusBadge } from "@/src/lib/BadgeHelper";
 import DocumentProgressModal from "@/src/modules/document/components/modals/DocumentProgressModal";
-
 
 export default function DocumentExplorerComponent() {
   const router = useRouter();
@@ -61,16 +75,33 @@ export default function DocumentExplorerComponent() {
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
-    setPage(0); 
+    setPage(0);
   };
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setPage(0); 
+    setPage(0);
   };
 
-  const handleDownloadAuditLog = (id: string, name: string) => {
-    console.log(`Downloading audit log for ${name} (${id})`);
+  const handleDownloadAuditLog = async (
+    documentId: string,
+    documentName: string,
+  ) => {
+    try {
+      const { url } = await getDocumentLogApi(documentId);
+      const link = document.createElement("a");
+      link.href = url;
+
+      const safeName = documentName.replace(/\s+/g, "-").toLowerCase();
+      link.download = `${safeName}-audit-log.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download audit log:", error);
+    }
   };
 
   return (
@@ -79,7 +110,10 @@ export default function DocumentExplorerComponent() {
         <section>
           <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative w-full sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={16}
+              />
               <input
                 type="text"
                 placeholder="Search documents by name..."
@@ -132,7 +166,10 @@ export default function DocumentExplorerComponent() {
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-4">
             {documentsLoading ? (
               <div className="py-12 flex flex-col items-center justify-center">
-                <Loader2 size={24} className="animate-spin text-slate-400 mb-2" />
+                <Loader2
+                  size={24}
+                  className="animate-spin text-slate-400 mb-2"
+                />
                 <span className="text-sm text-slate-500 font-medium">
                   Loading documents...
                 </span>
@@ -147,22 +184,30 @@ export default function DocumentExplorerComponent() {
                   />
                 </div>
                 <p className="text-sm font-semibold text-slate-800">
-                  {debouncedQuery 
+                  {debouncedQuery
                     ? "No documents match your search"
-                    : statusFilter === "DRAFT" ? "No drafts found"
-                    : statusFilter === "PENDING" ? "No pending documents"
-                    : statusFilter === "FINALIZED" ? "No finalized documents"
-                    : statusFilter === "REVOKED" ? "No revoked documents"
-                    : "No documents found"}
+                    : statusFilter === "DRAFT"
+                      ? "No drafts found"
+                      : statusFilter === "PENDING"
+                        ? "No pending documents"
+                        : statusFilter === "FINALIZED"
+                          ? "No finalized documents"
+                          : statusFilter === "REVOKED"
+                            ? "No revoked documents"
+                            : "No documents found"}
                 </p>
                 <p className="text-sm text-slate-500 mt-1 text-center max-w-xs">
                   {debouncedQuery
                     ? "Try adjusting your search terms or clearing filters."
-                    : statusFilter === "DRAFT" ? "You don't have any unfinished signing requests."
-                    : statusFilter === "PENDING" ? "You don't have any documents waiting for signatures."
-                    : statusFilter === "FINALIZED" ? "None of your documents have been fully signed yet."
-                    : statusFilter === "REVOKED" ? "You don't have any cancelled or revoked documents."
-                    : "Upload a PDF above to create your first signing request."}
+                    : statusFilter === "DRAFT"
+                      ? "You don't have any unfinished signing requests."
+                      : statusFilter === "PENDING"
+                        ? "You don't have any documents waiting for signatures."
+                        : statusFilter === "FINALIZED"
+                          ? "None of your documents have been fully signed yet."
+                          : statusFilter === "REVOKED"
+                            ? "You don't have any cancelled or revoked documents."
+                            : "Upload a PDF above to create your first signing request."}
                 </p>
               </div>
             ) : (
