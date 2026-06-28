@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 import DocumentProgressModal from "@/src/modules/document/components/modals/DocumentProgressModal";
 
-interface RecentDocument {
+export interface RecentDocument {
   id: string;
   documentName: string;
   status: string;

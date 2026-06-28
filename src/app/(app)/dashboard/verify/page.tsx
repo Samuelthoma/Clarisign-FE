@@ -128,12 +128,12 @@ export default function VerifyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="h-16 bg-background border-b flex items-center shrink-0">
-        <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+    <div className="space-y-6 max-w-6xl mx-auto pb-8">
+      <header className="pb-6 border-b border-slate-200 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             PDF Signature Verification
-          </h2>
+          </h1>
           <p className="text-slate-500 mt-1.5 text-lg font-medium">
             Verify digital signatures and certificate integrity.
           </p>

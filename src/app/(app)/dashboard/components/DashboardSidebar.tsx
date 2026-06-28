@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   FileText,
+  FolderSearch,
 } from "lucide-react";
 import { logoutApi } from "@/lib/api/UserApi";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: Home, exact: true },
+  { href: "/dashboard/document", label: "Document Explorer", icon: FolderSearch},
   { href: "/dashboard/audit", label: "Activity Logs", icon: Activity },
   { href: "/dashboard/verify", label: "Verify Document", icon: BadgeCheck },
 ];
