@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { format, parse } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 
 interface IdValidationStepProps {
   ocrData: any;
@@ -23,26 +23,26 @@ export default function IdValidationStep({
   ocrData,
   onNext,
 }: IdValidationStepProps) {
+  // OCR may return "Not found" for any field — treat that (and unparseable dates)
+  // as blank so the user simply fills it in, instead of crashing later on format().
+  const cleanOcr = (val?: string) => (val && val !== "Not found" ? val : "");
+
   const parseDate = (dateStr?: string) => {
-    if (!dateStr) return undefined;
-    try {
-      return parse(dateStr, "dd-MM-yyyy", new Date());
-    } catch (error) {
-      console.error("Failed to parse date", error);
-      return undefined;
-    }
+    if (!dateStr || dateStr === "Not found") return undefined;
+    const parsed = parse(dateStr, "dd-MM-yyyy", new Date());
+    return isValid(parsed) ? parsed : undefined;
   };
 
   const [formData, setFormData] = useState({
-    nik: ocrData?.NIK || "",
-    nama: ocrData?.Nama || "",
+    nik: cleanOcr(ocrData?.NIK),
+    nama: cleanOcr(ocrData?.Nama),
     tanggalLahir: parseDate(ocrData?.DOB),
   });
 
   useEffect(() => {
     setFormData({
-      nik: ocrData?.NIK || "",
-      nama: ocrData?.Nama || "",
+      nik: cleanOcr(ocrData?.NIK),
+      nama: cleanOcr(ocrData?.Nama),
       tanggalLahir: parseDate(ocrData?.DOB),
     });
   }, [ocrData]);

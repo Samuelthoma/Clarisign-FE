@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "@/src/styles/globals.css";
 
 import AccountStep from "./steps/AccountStep";
@@ -13,7 +13,7 @@ import {
   idCardOcrApi,
   registerApi,
   setPasswordApi,
-  updateKycStatusApi,
+  verifyKycApi,
   uploadFaceImageApi,
   verifyOtpApi,
 } from "@/lib/api/AuthApi";
@@ -37,6 +37,41 @@ interface RegisterDataState {
   email: string;
   ocrData: OcrData | null;
   verifiedIdData: VerifiedIdData | null;
+  // Short-lived registration JWT issued at /verify-otp; required by /set-password.
+  registrationToken: string | null;
+}
+
+// Persist the registration token (with its email) in sessionStorage so an
+// accidental refresh mid-registration doesn't lose it. Cleared on tab close.
+const REG_STORAGE_KEY = "clarisign_registration";
+
+function persistRegistration(email: string, token: string | null, step?: number) {
+  if (typeof window === "undefined") return;
+  if (token) {
+    sessionStorage.setItem(
+      REG_STORAGE_KEY,
+      JSON.stringify({ email, token, step: step ?? 2 }),
+    );
+  } else {
+    sessionStorage.removeItem(REG_STORAGE_KEY);
+  }
+}
+
+function readRegistration(): {
+  email: string;
+  token: string;
+  step?: number;
+} | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem(REG_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed?.email && parsed?.token) return parsed;
+  } catch {
+    /* ignore malformed storage */
+  }
+  return null;
 }
 
 export default function RegisterPage() {
@@ -48,7 +83,20 @@ export default function RegisterPage() {
     email: "",
     ocrData: null,
     verifiedIdData: null,
+    registrationToken: null,
   });
+
+  // Rehydrate the registration token after a refresh.
+  useEffect(() => {
+    const saved = readRegistration();
+    if (saved) {
+      setRegisterData((prev) => ({
+        ...prev,
+        email: prev.email || saved.email,
+        registrationToken: saved.token,
+      }));
+    }
+  }, []);
 
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
@@ -66,36 +114,40 @@ export default function RegisterPage() {
     setIsRequestingOtp(true);
     setEmailError(undefined);
 
-    try {
-      const response = await registerApi(data.email);
-
+    // If we still hold a valid session (token) for THIS email, resume straight to
+    // the last step — no new OTP is sent.
+    const saved = readRegistration();
+    if (saved?.token && saved.email === data.email) {
       setRegisterData((prev) => ({
         ...prev,
         email: data.email,
+        registrationToken: saved.token,
       }));
+      setCurrentStep(saved.step && saved.step >= 2 ? saved.step : 2);
+      setIsRequestingOtp(false);
+      return;
+    }
 
+    // No valid session → send an OTP and go verify it (verification mints a fresh
+    // token). Any in-progress account resumes through OTP first.
+    try {
+      const response = await registerApi(data.email);
       const status = response.outputSchema?.registrationStatus;
 
-      switch (status) {
-        case "PENDING_OTP":
-          setCurrentStep(1);
-          if (response.outputSchema?.otpSent === false) {
-            handleResendOtp();
-          }
-          break;
+      // Starting fresh / different email → drop any stale token.
+      setRegisterData((prev) => ({
+        ...prev,
+        email: data.email,
+        registrationToken: null,
+      }));
+      persistRegistration(data.email, null);
 
-        case "PENDING_KYC":
-          setCurrentStep(2);
-          break;
-
-        case "PENDING_PASSWORD":
-          setCurrentStep(5);
-          break;
-
-        default:
-          setCurrentStep(1);
-          break;
+      if (status === "COMPLETED") {
+        setEmailError("This email is already registered. Please log in.");
+        return;
       }
+
+      setCurrentStep(1); // OTP
     } catch (error: any) {
       console.error("Failed to request OTP:", error);
       setEmailError(
@@ -111,8 +163,21 @@ export default function RegisterPage() {
     setOtpError(undefined);
 
     try {
-      await verifyOtpApi(registerData.email, otpValue);
-      setCurrentStep(2);
+      const response = await verifyOtpApi(registerData.email, otpValue);
+
+      // Capture + persist the registration token so /set-password can use it.
+      const token: string | null =
+        response.outputSchema?.registrationToken ?? null;
+      const status: string | undefined =
+        response.outputSchema?.registrationStatus;
+
+      // Resume-safe: verify-otp keeps the user's step, so route by returned status.
+      const nextStep = status === "PENDING_PASSWORD" ? 5 : 2;
+
+      setRegisterData((prev) => ({ ...prev, registrationToken: token }));
+      persistRegistration(registerData.email, token, nextStep);
+
+      setCurrentStep(nextStep);
     } catch (error: any) {
       console.error("Failed to verify OTP:", error);
       setOtpError(error.message || "Failed to verify code. Please try again.");
@@ -130,13 +195,10 @@ export default function RegisterPage() {
   };
 
   const handleFinalKycSubmission = async (base64FaceImage: string) => {
-    if (
-      !registerData.ocrData ||
-      !registerData.verifiedIdData ||
-      !registerData.verifiedIdData.tanggalLahir
-    ) {
-      console.error("Missing required registration data. Cannot submit KYC.");
-      setKycError("Missing required data. Please review previous steps.");
+    const idCardKey = registerData.ocrData?.idCardImageUrl;
+    if (!idCardKey) {
+      console.error("Missing ID card image. Cannot submit KYC.");
+      setKycError("Missing ID card data. Please re-upload your ID.");
       return;
     }
 
@@ -151,25 +213,34 @@ export default function RegisterPage() {
       const uploadRes = await uploadFaceImageApi(imageFile);
       const selfieObjectId = uploadRes.objectId;
 
-      const formattedDob = format(
-        registerData.verifiedIdData.tanggalLahir,
-        "yyyy-MM-dd",
-      );
-
-      const finalPayload = {
+      // The server (Python) runs OCR + face match and reports the verdict to
+      // sign-api. In production, NIK/name/DOB are extracted server-side (OCR is
+      // authoritative). The reviewed values below are only honored when the
+      // server's KYC_ALLOW_CLIENT_IDENTITY dev flag is on (for testing).
+      const verified = registerData.verifiedIdData;
+      const result = await verifyKycApi({
         email: registerData.email,
-        nik: registerData.verifiedIdData.nik,
-        fullName: registerData.verifiedIdData.nama,
-        dateOfBirth: formattedDob,
-        idCardImageUrl:
-          registerData.ocrData.idCardImageUrl || "missing-id-card-url",
-        selfieImageUrl: selfieObjectId,
-        isKycValid: true,
-      };
+        id_card_key: idCardKey,
+        selfie_key: selfieObjectId,
+        nik: verified?.nik,
+        full_name: verified?.nama,
+        date_of_birth: verified?.tanggalLahir
+          ? format(verified.tanggalLahir, "yyyy-MM-dd")
+          : undefined,
+      });
 
-      console.log(finalPayload);
-      await updateKycStatusApi(finalPayload);
+      if (result?.valid === false) {
+        const reasons: string[] = result.reasons ?? [];
+        setKycError(
+          reasons.length
+            ? `Verification failed: ${reasons.join("; ")}`
+            : "Identity verification did not pass. Please try again.",
+        );
+        return;
+      }
 
+      // KYC done → remember set-password as the resume point.
+      persistRegistration(registerData.email, registerData.registrationToken, 5);
       setCurrentStep(5);
     } catch (error: any) {
       console.error("Failed KYC submission:", error);
@@ -215,13 +286,26 @@ export default function RegisterPage() {
     setPasswordError(undefined);
 
     try {
+      const token = registerData.registrationToken;
+      if (!token) {
+        // No valid session token (e.g. it expired or was never obtained).
+        setPasswordError(
+          "Your registration session has expired. Please verify the OTP again.",
+        );
+        setCurrentStep(1);
+        return;
+      }
+
       const passwordPayload = {
         email: registerData.email,
         password: password,
         confirmPassword: confirmPassword,
+        registrationToken: token,
       };
 
       await setPasswordApi(passwordPayload);
+
+      persistRegistration(registerData.email, null); // consume the token
       router.replace("/login");
     } catch (err: any) {
       console.log("Failed to set password", err);

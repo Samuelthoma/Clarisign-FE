@@ -43,17 +43,22 @@ export const verifyOtpApi = async (email: string, otp: string) => {
   });
 };
 
-export const updateKycStatusApi = async (data: {
+// KYC is now decided server-side: the Python service runs OCR + face match on the
+// uploaded images (by R2 key) and, only if it passes, reports the verdict to
+// sign-api itself. The client just points at the images — it never asserts validity.
+export const verifyKycApi = async (data: {
   email: string;
-  nik: string;
-  fullName: string;
-  dateOfBirth: string;
-  idCardImageUrl: string;
-  selfieImageUrl: string;
-  isKycValid: boolean;
+  id_card_key: string;
+  selfie_key: string;
+  // Optional client-supplied identity — only used by the server when its
+  // KYC_ALLOW_CLIENT_IDENTITY dev flag is on; ignored in production.
+  nik?: string;
+  full_name?: string;
+  date_of_birth?: string;
 }) => {
-  return apiFetch("/api/v1/auth/validate-kyc", {
+  return fastApiFetch("/identity/verify-kyc", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 };
@@ -72,6 +77,7 @@ export const setPasswordApi = async (data: {
   email: string;
   password: string;
   confirmPassword: string;
+  registrationToken: string;
 }) => {
   return apiFetch("/api/v1/auth/set-password", {
     method: "POST",

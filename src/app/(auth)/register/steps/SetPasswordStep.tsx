@@ -18,9 +18,13 @@ export default function PasswordSetupStep({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isLengthValid = password.length >= 8;
+  // Mirror the backend policy: at least one lowercase, one uppercase, one digit.
+  const hasComplexity =
+    /[a-z]/.test(password) && /[A-Z]/.test(password) && /\d/.test(password);
+  const isPasswordValid = isLengthValid && hasComplexity;
   const passwordsMatch = password === confirmPassword;
 
-  const canSubmit = isLengthValid && passwordsMatch && !isSubmitting;
+  const canSubmit = isPasswordValid && passwordsMatch && !isSubmitting;
 
   return (
     <div className="flex flex-col items-center text-center w-full">
@@ -42,7 +46,7 @@ export default function PasswordSetupStep({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isSubmitting}
-              placeholder="Minimum 8 characters"
+              placeholder="Min 8 chars: upper, lower & number"
               className="
                 w-full
                 px-3 py-2
@@ -73,9 +77,10 @@ export default function PasswordSetupStep({
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {password && !isLengthValid && (
+          {password && !isPasswordValid && (
             <p className="text-xs text-muted-foreground mt-1.5">
-              Password must be at least 8 characters.
+              Password must be at least 8 characters and include an uppercase
+              letter, a lowercase letter, and a number.
             </p>
           )}
         </div>
