@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register"];
+const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/signature-test"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export function proxy(request: NextRequest) {

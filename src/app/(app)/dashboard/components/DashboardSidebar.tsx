@@ -48,7 +48,7 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
   const rowLayout = collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5";
 
   return (
-    <aside
+    <aside id="tour-sidebar"
       className={cn(
         "bg-white border-r border-slate-300 flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-[width] duration-300 ease-in-out",
         collapsed ? "w-[76px]" : "w-[260px]",

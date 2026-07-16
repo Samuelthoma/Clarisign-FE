@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import "@/src/styles/globals.css";
 import DashboardSidebar from "./components/DashboardSidebar";
 import DashboardTopbar from "./components/DashboardTopbar";
+import "driver.js/dist/driver.css";
+import { startDashboardTour } from "@/lib/tour/dashboardTour";
 
 const STORAGE_KEY = "clarisign:sidebar-collapsed";
 
@@ -20,6 +22,19 @@ export default function DashboardLayout({
     if (saved !== null) setCollapsed(saved === "true");
   }, []);
 
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem("dashboard-tour");
+
+    if (!hasSeenTour) {
+      const timer = setTimeout(() => {
+        startDashboardTour();
+        localStorage.setItem("dashboard-tour", "true");
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const toggleSidebar = () => {
     setCollapsed((prev) => {
       const next = !prev;
@@ -33,9 +48,11 @@ export default function DashboardLayout({
       <DashboardSidebar collapsed={collapsed} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
-        <DashboardTopbar collapsed={collapsed} onToggleSidebar={toggleSidebar} />
+        <DashboardTopbar
+          collapsed={collapsed}
+          onToggleSidebar={toggleSidebar}
+        />
         <div className="relative flex-1 overflow-auto">
-          {/* subtle brand-tinted ambience so white surfaces blend into the page */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 top-0 h-72"

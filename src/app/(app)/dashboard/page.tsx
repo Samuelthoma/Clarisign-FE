@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DocumentProgressModal from "@/src/modules/document/components/modals/DocumentProgressModal";
+import { startDashboardTour } from "@/lib/tour/dashboardTour";
 
 export interface RecentDocument {
   id: string;
@@ -64,6 +65,19 @@ export default function DashboardHome() {
     setStatusFilter(value);
     setPage(0);
   };
+
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem("dashboard-tour");
+
+    if (!hasSeenTour) {
+      const timer = setTimeout(() => {
+        startDashboardTour();
+        localStorage.setItem("dashboard-tour", "true");
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -180,6 +194,7 @@ export default function DashboardHome() {
         </div>
 
         <div
+          id="tour-upload"
           onClick={() => !loading && inputRef.current?.click()}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
@@ -241,7 +256,7 @@ export default function DashboardHome() {
         />
       </section>
 
-      <section>
+      <section id="tour-recent-documents">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
             Recent Documents

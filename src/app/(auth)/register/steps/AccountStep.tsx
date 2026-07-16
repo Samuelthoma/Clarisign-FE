@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useState } from "react";
 
 type AccountStepProps = {
@@ -58,6 +59,16 @@ export default function AccountStep({
             {isSubmitting ? "Sending..." : "Send Verification Code"}
           </button>
         </div>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="text-primary font-semibold underline underline-offset-2"
+          >
+            Back to Login
+          </Link>
+        </p>
       </form>
     </>
   );

@@ -94,3 +94,10 @@ export const idCardOcrApi = async (file: File) => {
     body: formData,
   });
 };
+
+export const requestPasswordResetApi = async (email: string) => {
+  return apiFetch("/api/v1/auth/password-reset-requests", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+};
