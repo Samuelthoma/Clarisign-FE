@@ -101,3 +101,20 @@ export const requestPasswordResetApi = async (email: string) => {
     body: JSON.stringify({ email }),
   });
 };
+
+export const verifyResetPasswordOtpApi = async (email: string, otp: string) => {
+  return apiFetch("/api/v1/auth/password-reset-verify", {
+    method: "POST",
+    body: JSON.stringify({ email, otp }),
+  });
+};
+
+export const resetPasswordApi = async (
+  resetToken: string,
+  password: string,
+) => {
+  return apiFetch("/api/v1/auth/password-resets", {
+    method: "POST",
+    body: JSON.stringify({ resetToken, password }),
+  });
+};

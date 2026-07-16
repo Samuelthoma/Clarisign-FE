@@ -8,10 +8,16 @@ import { useRouter } from "next/navigation";
 import OtpStep from "../register/steps/OtpStep";
 import PasswordSetupStep from "../register/steps/SetPasswordStep";
 import ForgotPasswordEmailStep from "./ForgotPasswordEmailStep";
-import { requestPasswordResetApi } from "@/lib/api/AuthApi";
+import {
+  requestPasswordResetApi,
+  resetPasswordApi,
+  verifyResetPasswordOtpApi,
+} from "@/lib/api/AuthApi";
+import { toast } from "sonner";
 
 interface ForgotPasswordState {
   email: string;
+  resetToken: string;
 }
 
 export default function ForgotPasswordPage() {
@@ -23,6 +29,7 @@ export default function ForgotPasswordPage() {
   const [forgotPasswordData, setForgotPasswordData] =
     useState<ForgotPasswordState>({
       email: "",
+      resetToken: "",
     });
 
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
@@ -38,10 +45,11 @@ export default function ForgotPasswordPage() {
     setEmailError(undefined);
 
     try {
-      await requestPasswordResetApi(data.email)
+      await requestPasswordResetApi(data.email);
 
       setForgotPasswordData({
         email: data.email,
+        resetToken: "",
       });
 
       setCurrentStep(1);
@@ -59,9 +67,15 @@ export default function ForgotPasswordPage() {
     setOtpError(undefined);
 
     try {
-      // TODO:
-      // await verifyForgotPasswordOtpApi(forgotPasswordData.email, otp);
+      const response = await verifyResetPasswordOtpApi(
+        forgotPasswordData.email,
+        otp,
+      );
 
+      setForgotPasswordData((prev) => ({
+        ...prev,
+        resetToken: response.outputSchema.resetToken,
+      }));
       setCurrentStep(2);
     } catch (err: any) {
       setOtpError(err.message || "Failed to verify verification code.");
@@ -72,33 +86,27 @@ export default function ForgotPasswordPage() {
 
   const handleResendOtp = async () => {
     try {
-      // TODO:
-      // await forgotPasswordApi(forgotPasswordData.email);
+      await requestPasswordResetApi(forgotPasswordData.email);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleResetPassword = async (
-    password: string,
-    confirmPassword: string,
-  ) => {
+  const handleResetPassword = async (password: string) => {
     setIsResettingPassword(true);
     setPasswordError(undefined);
 
     try {
-      // TODO:
-      // await resetPasswordApi({
-      //   email: forgotPasswordData.email,
-      //   password,
-      //   confirmPassword,
-      // });
-
+      await resetPasswordApi(forgotPasswordData.resetToken, password);
+      toast("Password reset successfully", { position: "top-right" });
       router.replace("/login");
     } catch (err: any) {
       setPasswordError(
         err.message || "Failed to reset password. Please try again.",
       );
+      toast(err.message, {
+        position: "top-right",
+      });
     } finally {
       setIsResettingPassword(false);
     }
