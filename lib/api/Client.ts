@@ -13,12 +13,16 @@ export class ApiError extends Error {
   }
 }
 
+export type ActionResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; message: string; code?: string; status: number };
+
 type ErrorParser = (text: string, status: number) => Error;
 
 const rawErrorParser: ErrorParser = (text, status) =>
   new Error(text || `HTTP ${status}`);
 
-const signApiErrorParser: ErrorParser = (text, status) => {
+export const signApiErrorParser: ErrorParser = (text, status) => {
   let message = text || `HTTP ${status}`;
   let code: string | undefined;
   let body: unknown;
