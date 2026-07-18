@@ -10,9 +10,3 @@ export const getCurrentUserApi = async () => {
 
   return data;
 };
-
-export const logoutApi = async () => {
-  return authFetch("/api/v1/auth/tokens", {
-    method: "DELETE",
-  });
-};

@@ -9,6 +9,7 @@ import {
   PenTool,
   XCircle,
   CheckCircle2,
+  Eye,
   Download,
   ClipboardList,
 } from "lucide-react";
@@ -60,6 +61,7 @@ export type UserActionType =
   | "SIGN_DOCUMENT"
   | "REJECT_DOCUMENT"
   | "FINALIZE_DOCUMENT"
+  | "VIEW_DOCUMENT"
   | "DOWNLOAD_DOCUMENT"
   | "DOWNLOAD_AUDIT_LOG";
 
@@ -74,6 +76,7 @@ export const ActionTypeLabels: Record<UserActionType, string> = {
   SIGN_DOCUMENT: "Sign Document",
   REJECT_DOCUMENT: "Reject Document",
   FINALIZE_DOCUMENT: "Finalize Document",
+  VIEW_DOCUMENT: "View Document",
   DOWNLOAD_DOCUMENT: "Download Document",
   DOWNLOAD_AUDIT_LOG: "Download Audit Log",
 };
@@ -121,6 +124,10 @@ export const ActionStyleConfig: Record<
   FINALIZE_DOCUMENT: {
     icon: CheckCircle2,
     colorClass: "bg-green-100 text-green-800 border-green-200",
+  },
+  VIEW_DOCUMENT: {
+    icon: Eye,
+    colorClass: "bg-sky-100 text-sky-800 border-sky-200",
   },
   DOWNLOAD_DOCUMENT: {
     icon: Download,

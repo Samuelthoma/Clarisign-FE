@@ -1,7 +1,21 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { apiFetch, authFetch, fastApiFetch } from "./Client";
+
+const AUTH_COOKIE = "accessToken";
+
+async function resolveCookieScope() {
+  const hostname = ((await headers()).get("host") ?? "").split(":")[0];
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+
+  if (isLocal || !hostname.includes(".")) {
+    return { secure: false as const };
+  }
+
+  const baseDomain = hostname.split(".").slice(-2).join(".");
+  return { domain: `.${baseDomain}`, secure: true as const };
+}
 
 export const loginApi = async (email: string, password: string) => {
   const response = await authFetch("/api/v1/auth/login", {
@@ -15,18 +29,45 @@ export const loginApi = async (email: string, password: string) => {
     const tokenMatch = setCookieHeader.match(/accessToken=([^;]+)/);
 
     if (tokenMatch && tokenMatch[1]) {
+      const scope = await resolveCookieScope();
       (await cookies()).set({
-        name: "accessToken",
+        name: AUTH_COOKIE,
         value: tokenMatch[1],
         httpOnly: true,
         path: "/",
         maxAge: 60 * 60,
-        secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
+        ...scope,
       });
     }
   }
   return await response.json();
+};
+
+/**
+ * Logout must run on the server: the auth cookie is set by Next (scoped to the
+ * parent domain), so only Next can clear it. The backend call is still made so
+ * the logout is recorded there, but it cannot clear this cookie by itself.
+ */
+export const logoutApi = async () => {
+  try {
+    await authFetch("/api/v1/auth/tokens", { method: "DELETE" });
+  } catch {
+
+  }
+
+  const scope = await resolveCookieScope();
+  (await cookies()).set({
+    name: AUTH_COOKIE,
+    value: "",
+    httpOnly: true,
+    path: "/",
+    maxAge: 0, // expire immediately
+    sameSite: "lax",
+    ...scope,
+  });
+
+  return { message: "Logged out" };
 };
 
 export const registerApi = async (email: string) => {

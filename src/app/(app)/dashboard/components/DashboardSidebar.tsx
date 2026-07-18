@@ -12,7 +12,7 @@ import {
   FileText,
   FolderSearch,
 } from "lucide-react";
-import { logoutApi } from "@/lib/api/UserApi";
+import { logoutApi } from "@/lib/api/AuthApi";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
