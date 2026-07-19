@@ -318,8 +318,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-muted/60 via-background to-background">
-      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-2xl w-full min-h-[520px]">
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-4 p-4 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-muted/60 via-background to-background">
+      <div className="bg-card shadow-2xl rounded-sm flex max-w-2xl w-full min-h-[520px]">
         <div className="w-full p-8 flex flex-col justify-center">
           {currentStep === 0 && (
             <AccountStep

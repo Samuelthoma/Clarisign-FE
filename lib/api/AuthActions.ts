@@ -2,26 +2,15 @@
 
 import { cookies, headers } from "next/headers";
 import { ActionResult, ApiError, fastApiFetch } from "./Client";
+import { authCookieScope } from "./cookieScope";
 import { serverApiFetch, serverAuthFetch } from "./ServerClient";
 
 const AUTH_COOKIE = "accessToken";
 
 async function resolveCookieScope() {
-  const hostname = ((await headers()).get("host") ?? "").split(":")[0];
-  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
-
-  if (isLocal || !hostname.includes(".")) {
-    return { secure: false as const };
-  }
-
-  const baseDomain = hostname.split(".").slice(-2).join(".");
-  return { domain: `.${baseDomain}`, secure: true as const };
+  return authCookieScope((await headers()).get("host") ?? "");
 }
 
-/**
- * Runs an action body and turns any throw into serializable data, so the real
- * reason survives the trip to the browser. See ActionResult in Client.ts.
- */
 async function run<T>(body: () => Promise<T>): Promise<ActionResult<T>> {
   try {
     return { ok: true, data: await body() };
@@ -87,7 +76,7 @@ export const logoutApi = async () =>
       value: "",
       httpOnly: true,
       path: "/",
-      maxAge: 0, // expire immediately
+      maxAge: 0,
       sameSite: "lax",
       ...scope,
     });
@@ -115,8 +104,6 @@ export const verifyKycApi = async (data: {
   email: string;
   id_card_key: string;
   selfie_key: string;
-  // Optional client-supplied identity — only used by the server when its
-  // KYC_ALLOW_CLIENT_IDENTITY dev flag is on; ignored in production.
   nik?: string;
   full_name?: string;
   date_of_birth?: string;

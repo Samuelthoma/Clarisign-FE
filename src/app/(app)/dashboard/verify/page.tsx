@@ -256,7 +256,7 @@ export default function VerifyPage() {
 
                   {expandedCards[index] && (
                     <>
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid md:grid-cols-2 gap-6 [&>div]:min-w-0">
                         <div className="space-y-4">
                           <div>
                             <p className="text-sm font-bold">
@@ -369,7 +369,7 @@ export default function VerifyPage() {
                               Serial Number
                             </p>
 
-                            <p className="font-medium font-mono mt-1 whitespace-pre-wrap wrap-break-word leading-relaxed text-muted-foreground">
+                            <p className="font-medium font-mono mt-1 break-all leading-relaxed text-muted-foreground">
                               {signature.signer.serialNumber}
                             </p>
                           </div>

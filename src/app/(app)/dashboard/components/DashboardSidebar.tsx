@@ -23,7 +23,15 @@ const NAV_ITEMS = [
   { href: "/dashboard/verify", label: "Verify Document", icon: BadgeCheck },
 ];
 
-export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) {
+export default function DashboardSidebar({
+  collapsed,
+  mobileOpen = false,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  mobileOpen?: boolean;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -44,27 +52,31 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.includes(href);
 
-  // shared row layout: centered icon when collapsed, icon + label otherwise
-  const rowLayout = collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5";
+  const showLabels = mobileOpen || !collapsed;
+
+  const rowLayout = showLabels ? "gap-3 px-3 py-2.5" : "justify-center px-0 py-2.5";
 
   return (
     <aside id="tour-sidebar"
       className={cn(
-        "bg-white border-r border-slate-300 flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-[width] duration-300 ease-in-out",
-        collapsed ? "w-[76px]" : "w-[260px]",
+        "bg-white border-r border-slate-300 flex flex-col z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
+        "fixed inset-y-0 left-0 w-[260px] transition-transform duration-300 ease-in-out",
+        mobileOpen ? "translate-x-0" : "-translate-x-full",
+        "md:static md:z-10 md:translate-x-0 md:shrink-0 md:transition-[width]",
+        collapsed ? "md:w-[76px]" : "md:w-[260px]",
       )}
     >
       {/* Brand */}
       <div
         className={cn(
           "h-[72px] flex items-center border-b border-slate-100",
-          collapsed ? "justify-center px-0" : "gap-3 px-6",
+          showLabels ? "gap-3 px-6" : "justify-center px-0",
         )}
       >
         <div className="size-9 aspect-square shrink-0 bg-linear-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md shadow-indigo-600/20 ring-1 ring-inset ring-white/20">
           <FileText size={18} className="text-white" strokeWidth={2} />
         </div>
-        {!collapsed && (
+        {showLabels && (
           <span className="font-bold text-slate-900 tracking-tight text-xl whitespace-nowrap">
             Clarisign
           </span>
@@ -73,7 +85,7 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto overflow-x-hidden">
-        {!collapsed && (
+        {showLabels && (
           <p className="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3">
             Workspace
           </p>
@@ -85,7 +97,8 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
             <Link
               key={href}
               href={href}
-              title={collapsed ? label : undefined}
+              onClick={onNavigate}
+              title={showLabels ? undefined : label}
               className={cn(
                 "group flex items-center rounded-lg text-sm font-semibold transition-all duration-200",
                 rowLayout,
@@ -104,7 +117,7 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
                     : "text-slate-400 group-hover:text-slate-600",
                 )}
               />
-              {!collapsed && <span className="whitespace-nowrap">{label}</span>}
+              {showLabels && <span className="whitespace-nowrap">{label}</span>}
             </Link>
           );
         })}
@@ -113,7 +126,7 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
       {/* Footer actions */}
       <div className="p-3 border-t border-slate-100 space-y-1 bg-slate-50/30">
         <button
-          title={collapsed ? "Settings" : undefined}
+          title={showLabels ? undefined : "Settings"}
           className={cn(
             "group w-full flex items-center rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors",
             rowLayout,
@@ -123,13 +136,13 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
             size={18}
             className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0"
           />
-          {!collapsed && <span className="whitespace-nowrap">Settings</span>}
+          {showLabels && <span className="whitespace-nowrap">Settings</span>}
         </button>
 
         <button
           onClick={handleLogout}
           disabled={isLoggingOut}
-          title={collapsed ? "Log out" : undefined}
+          title={showLabels ? undefined : "Log out"}
           className={cn(
             "group w-full flex items-center rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
             rowLayout,
@@ -139,7 +152,7 @@ export default function DashboardSidebar({ collapsed }: { collapsed: boolean }) 
             size={18}
             className="text-slate-400 group-hover:text-red-500 transition-colors shrink-0"
           />
-          {!collapsed && (
+          {showLabels && (
             <span className="whitespace-nowrap">
               {isLoggingOut ? "Logging out..." : "Log out"}
             </span>

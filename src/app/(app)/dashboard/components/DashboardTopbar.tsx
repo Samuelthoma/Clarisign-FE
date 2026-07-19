@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useAuthStore } from "@/src/store/AuthStore";
 
 const TITLES: Record<string, string> = {
@@ -44,15 +44,15 @@ export default function DashboardTopbar({
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onToggleSidebar}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label="Toggle navigation"
+          title="Toggle navigation"
           className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
         >
-          {collapsed ? (
-            <PanelLeftOpen size={18} />
-          ) : (
-            <PanelLeftClose size={18} />
-          )}
+
+          <Menu size={18} className="md:hidden" />
+          <span className="hidden md:block">
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </span>
         </button>
 
         <div className="h-6 w-px bg-slate-200 hidden sm:block" />

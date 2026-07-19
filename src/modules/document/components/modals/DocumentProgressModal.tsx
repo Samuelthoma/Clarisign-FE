@@ -57,9 +57,11 @@ export default function DocumentProgressModal({
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
               Document Progress
             </span>
-            <span className="text-lg text-slate-800 flex items-center gap-2 truncate">
+            <span className="text-lg text-slate-800 flex items-center gap-2 min-w-0">
               <FileText size={18} className="text-indigo-500 shrink-0" />
-              {data?.documentName || "Loading..."}
+              <span className="truncate" title={data?.documentName}>
+                {data?.documentName || "Loading..."}
+              </span>
             </span>
           </DialogTitle>
         </DialogHeader>

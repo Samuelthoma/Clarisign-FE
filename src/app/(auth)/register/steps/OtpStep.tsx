@@ -99,7 +99,11 @@ export default function OtpStep({ email, onVerify, onResend, isSubmitting, error
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
-      <div className="flex justify-between gap-3 mb-6">
+      {/* Six fixed w-10 boxes plus gap-3 need 300px; a 375px phone leaves 279px
+          inside the card padding, and the parent's overflow-hidden clipped the last
+          box rather than scrolling to it. Letting the boxes shrink fixes it without
+          changing anything above sm:. */}
+      <div className="flex justify-between gap-1.5 sm:gap-3 mb-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <input
             key={i}
@@ -116,7 +120,7 @@ export default function OtpStep({ email, onVerify, onResend, isSubmitting, error
             onKeyDown={(e) => handleKeyDown(e, i)}
             onPaste={handlePaste}
             className="
-              w-10 h-12 text-center text-lg font-medium
+              min-w-0 flex-1 max-w-10 h-12 text-center text-lg font-medium
               bg-transparent
               border-b-2 border-muted-foreground/40
               text-foreground

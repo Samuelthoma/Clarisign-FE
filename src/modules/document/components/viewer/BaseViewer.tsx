@@ -53,54 +53,57 @@ export default function BaseViewer({
 
   return (
     <div className="flex flex-col w-full h-full bg-[#f4f6f8] overflow-hidden">
-      <div className="h-14 flex items-center justify-between px-6 bg-white border-b shadow-sm z-10">
-        <div className="flex items-center gap-3">
+
+      <div className="h-14 shrink-0 flex items-center justify-between gap-2 px-3 sm:px-6 bg-white border-b shadow-sm z-10 overflow-x-auto">
+
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
           <FileText size={18} className="text-gray-600" />
           <span className="text-sm font-semibold text-gray-700">
             Document Viewer
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 mx-auto sm:mx-0">
           <button
             onClick={zoomOut}
-            className="p-2 border rounded-md hover:bg-gray-100 transition"
+            className="p-2 border rounded-md hover:bg-gray-100 transition shrink-0"
             title="Zoom Out"
           >
             <ZoomOut size={16} />
           </button>
 
-          <div className="text-sm font-medium text-gray-700 min-w-[90px] text-center">
+          <div className="text-sm font-medium text-gray-700 min-w-[48px] sm:min-w-[90px] text-center shrink-0 tabular-nums">
             {Math.round(scale * 100)}%
           </div>
 
           <button
             onClick={zoomIn}
-            className="p-2 border rounded-md hover:bg-gray-100 transition"
+            className="p-2 border rounded-md hover:bg-gray-100 transition shrink-0"
             title="Zoom In"
           >
             <ZoomIn size={16} />
           </button>
 
-          <div className="w-px h-6 bg-gray-200 mx-2" />
+          <div className="w-px h-6 bg-gray-200 mx-0.5 sm:mx-2 shrink-0" />
 
           <button
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
-            className="p-2 border rounded-md hover:bg-gray-100 disabled:opacity-40 transition"
+            className="p-2 border rounded-md hover:bg-gray-100 disabled:opacity-40 transition shrink-0"
             title="Previous Page"
           >
             <ChevronLeft size={18} />
           </button>
 
-          <span className="text-sm font-medium text-gray-700 min-w-[110px] text-center">
-            Page {pageNumber || 1} / {numPages || "--"}
+          <span className="text-sm font-medium text-gray-700 min-w-[52px] sm:min-w-[110px] text-center shrink-0 tabular-nums whitespace-nowrap">
+            <span className="hidden sm:inline">Page </span>
+            {pageNumber || 1} / {numPages || "--"}
           </span>
 
           <button
             onClick={goToNextPage}
             disabled={pageNumber >= (numPages || 1)}
-            className="p-2 border rounded-md hover:bg-gray-100 disabled:opacity-40 transition"
+            className="p-2 border rounded-md hover:bg-gray-100 disabled:opacity-40 transition shrink-0"
             title="Next Page"
           >
             <ChevronRight size={18} />
@@ -108,8 +111,9 @@ export default function BaseViewer({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto bg-[#f4f6f8] p-6">
-        <div className="flex justify-center min-w-0">
+      <div className="flex-1 overflow-auto bg-[#f4f6f8] p-2 sm:p-6">
+
+        <div className="flex justify-center-safe min-w-0">
           <div className="inline-block bg-white border border-gray-300 shadow-xl rounded-md p-4">
             {isLoading ? (
               <DocumentSkeleton />

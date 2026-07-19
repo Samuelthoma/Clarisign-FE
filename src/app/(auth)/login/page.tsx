@@ -3,7 +3,8 @@
 import "@/src/styles/globals.css";
 import { loginApi } from "@/lib/api/AuthApi";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { getCurrentUserApi } from "@/lib/api/UserApi";
 import { useAuthStore } from "@/src/store/AuthStore";
 
@@ -15,6 +16,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const setUser = useAuthStore((state) => state.setUser);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("session") !== "expired") return;
+
+    toast.info("Your session has expired. Please sign in again.");
+
+    params.delete("session");
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `/login?${query}` : "/login");
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +48,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex max-w-4xl w-full h-[520px]">
-        <div className="w-1/2 p-10 flex flex-col justify-center">
+    <div className="min-h-dvh flex items-center justify-center bg-background p-4">
+      <div className="bg-card shadow-2xl rounded-sm overflow-hidden flex flex-col md:flex-row max-w-4xl w-full md:h-[520px]">
+        <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
           <h2 className="text-2xl font-bold mb-6 text-foreground">Login</h2>
 
           {error && (
@@ -126,7 +138,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <div className="w-1/2 bg-muted">
+        <div className="hidden md:block md:w-1/2 bg-muted">
           <div className="aspect-square w-full h-full">
             <img
               src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200"

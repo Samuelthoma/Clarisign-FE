@@ -17,6 +17,14 @@ export type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; message: string; code?: string; status: number };
 
+function redirectIfSessionEnded(status: number) {
+  if (status !== 401) return;
+  if (typeof window === "undefined") return;
+  if (window.location.pathname === "/login") return;
+
+  window.location.replace("/login?session=expired");
+}
+
 type ErrorParser = (text: string, status: number) => Error;
 
 const rawErrorParser: ErrorParser = (text, status) =>
@@ -59,6 +67,7 @@ async function baseFetch(
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     console.error("API ERROR:", { url, status: res.status, body: text });
+    redirectIfSessionEnded(res.status);
     throw errorParser(text, res.status);
   }
 
@@ -86,6 +95,7 @@ export async function authFetch(path: string, options: RequestInit = {}) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     console.error("AUTH ERROR:", { url, status: res.status, body: text });
+    redirectIfSessionEnded(res.status);
     throw signApiErrorParser(text, res.status);
   }
 
