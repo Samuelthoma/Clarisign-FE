@@ -43,6 +43,12 @@ export const uploadDocumentApi = async (file: File) => {
   return response.outputSchema;
 };
 
+export const deleteDocumentApi = async (documentId: string) => {
+  return apiFetch(`/api/v1/documents/${documentId}`, {
+    method: "DELETE",
+  });
+};
+
 export const getRecentDocumentListApi = async (params: GetDocumentsParams) => {
   const queryParams = new URLSearchParams();
 

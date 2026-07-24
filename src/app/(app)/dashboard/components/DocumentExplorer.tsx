@@ -27,6 +27,7 @@ import { getDocumentLogApi, getRecentDocumentListApi } from "@/lib/api/DocumentA
 import { RecentDocument } from "../page";
 import { StatusBadge } from "@/src/lib/BadgeHelper";
 import DocumentProgressModal from "@/src/modules/document/components/modals/DocumentProgressModal";
+import DeleteDocumentButton from "./DeleteDocumentButton";
 
 export default function DocumentExplorerComponent() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function DocumentExplorerComponent() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [progressModalId, setProgressModalId] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,7 +73,7 @@ export default function DocumentExplorerComponent() {
     };
 
     fetchDocuments();
-  }, [page, size, statusFilter, debouncedQuery]);
+  }, [page, size, statusFilter, debouncedQuery, refreshTick]);
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
@@ -276,6 +278,14 @@ export default function DocumentExplorerComponent() {
                           <Download size={14} strokeWidth={2} />
                           <span className="hidden sm:inline">Audit Log</span>
                         </button>
+
+                        {doc.isOwner && doc.status === "DRAFT" && (
+                          <DeleteDocumentButton
+                            documentId={doc.id}
+                            documentName={doc.documentName}
+                            onDeleted={() => setRefreshTick((t) => t + 1)}
+                          />
+                        )}
 
                         <ChevronRight
                           size={18}

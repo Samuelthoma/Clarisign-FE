@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DocumentProgressModal from "@/src/modules/document/components/modals/DocumentProgressModal";
+import DeleteDocumentButton from "./components/DeleteDocumentButton";
 import { startDashboardTour } from "@/lib/tour/dashboardTour";
 
 export interface RecentDocument {
@@ -58,6 +59,7 @@ export default function DashboardHome() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [progressModalId, setProgressModalId] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const { user } = useAuthStore();
 
@@ -99,7 +101,7 @@ export default function DashboardHome() {
     };
 
     fetchDocuments();
-  }, [page, size, statusFilter]);
+  }, [page, size, statusFilter, refreshTick]);
 
   const handleDownloadAuditLog = async (
     documentId: string,
@@ -409,6 +411,14 @@ export default function DashboardHome() {
                         <Download size={14} strokeWidth={2} />
                         <span className="hidden sm:inline">Audit Log</span>
                       </button>
+
+                      {doc.isOwner && doc.status === "DRAFT" && (
+                        <DeleteDocumentButton
+                          documentId={doc.id}
+                          documentName={doc.documentName}
+                          onDeleted={() => setRefreshTick((t) => t + 1)}
+                        />
+                      )}
 
                       <ChevronRight
                         size={18}

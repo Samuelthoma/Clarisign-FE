@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone",
   productionBrowserSourceMaps: false,
   // `next dev` blocks cross-origin dev requests (HMR/dev client) from origins that
   // aren't listed here. Serving through the Cloudflare tunnel means the browser's
