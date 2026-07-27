@@ -165,10 +165,7 @@ export default function SignWorkspace({ documentId }: Props) {
         type: "image/jpeg",
       });
 
-      const verificationResponse = await verifyFaceIdentityApi(
-        sign.currentSignerId,
-        imageFile,
-      );
+      const verificationResponse = await verifyFaceIdentityApi(imageFile);
 
       console.log(verificationResponse);
 
