@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import config from "../config";
-import { signApiErrorParser } from "./Client";
+import { ApiError, signApiErrorParser } from "./Client";
 
 /**
  * Sign-api client for code that runs on the Next server (Server Actions).
@@ -97,4 +97,49 @@ export async function serverApiFetch(
   }
 
   return responseType === "blob" ? res.blob() : res.json();
+}
+
+/**
+ * FastAPI errors arrive as {"detail": "..."} — parse into an ApiError so Server
+ * Actions surface the real message instead of falling through to the generic
+ * "could not reach the server" fallback in run().
+ */
+const fastApiErrorParser = (text: string, status: number) => {
+  let message = text || `HTTP ${status}`;
+  try {
+    const body = JSON.parse(text) as { detail?: unknown };
+    if (typeof body?.detail === "string") message = body.detail;
+  } catch {
+    // non-JSON body (e.g. an HTML error page) — keep the raw text
+  }
+  return new ApiError(message, { status, body: text });
+};
+
+// Same Cloudflare-hairpin problem as INTERNAL_BASE_URL above, but worse: a
+// Server Action's fetch to py.clarisign.site leaves the box and re-enters via
+// Cloudflare, which 403s server-originated (bot-looking) traffic — so KYC/OCR
+// never even reached the python service. Go straight to its internal port.
+const FAST_API_INTERNAL_BASE_URL =
+  process.env.FAST_API_INTERNAL_URL || (config.FAST_API_BASE_URL as string);
+
+/** Server-side twin of fastApiFetch (python service, Server Actions only). */
+export async function serverFastApiFetch(path: string, options: RequestInit = {}) {
+  const url = `${FAST_API_INTERNAL_BASE_URL}${path}`;
+
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...(await visitorIpHeaders()),
+      ...(options.headers || {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("FAST API ERROR:", { url, status: res.status, body: text });
+    throw fastApiErrorParser(text, res.status);
+  }
+
+  return res.json();
 }

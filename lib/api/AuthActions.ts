@@ -1,9 +1,9 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
-import { ActionResult, ApiError, fastApiFetch } from "./Client";
+import { ActionResult, ApiError } from "./Client";
 import { authCookieScope } from "./cookieScope";
-import { serverApiFetch, serverAuthFetch } from "./ServerClient";
+import { serverApiFetch, serverAuthFetch, serverFastApiFetch } from "./ServerClient";
 
 const AUTH_COOKIE = "accessToken";
 
@@ -109,7 +109,7 @@ export const verifyKycApi = async (data: {
   date_of_birth?: string;
 }) =>
   run(() =>
-    fastApiFetch("/identity/verify-kyc", {
+    serverFastApiFetch("/identity/verify-kyc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -121,7 +121,7 @@ export const uploadFaceImageApi = async (file: File) =>
     const formData = new FormData();
     formData.append("file", file);
 
-    return fastApiFetch("/users/face", {
+    return serverFastApiFetch("/users/face", {
       method: "POST",
       body: formData,
     });
@@ -145,7 +145,7 @@ export const idCardOcrApi = async (file: File) =>
     const formData = new FormData();
     formData.append("file", file);
 
-    return fastApiFetch("/users/id-card", {
+    return serverFastApiFetch("/users/id-card", {
       method: "POST",
       body: formData,
     });
