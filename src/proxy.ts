@@ -23,6 +23,10 @@ function clearAuthCookie(response: NextResponse, request: NextRequest) {
   return response;
 }
 
+function isSafeNext(next: string): boolean {
+  return next.startsWith("/") && !next.startsWith("//");
+}
+
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const { pathname, searchParams } = request.nextUrl;
@@ -33,7 +37,10 @@ export function proxy(request: NextRequest) {
   const authenticated = token != null && isTokenLive(token);
 
   if (!authenticated && !isPublicRoute) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+
+    loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
+    const response = NextResponse.redirect(loginUrl);
     return token ? clearAuthCookie(response, request) : response;
   }
 
@@ -42,7 +49,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (authenticated && isAuthRoute) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const next = searchParams.get("next");
+    const destination = next && isSafeNext(next) ? next : "/dashboard";
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   return NextResponse.next();

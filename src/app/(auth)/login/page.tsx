@@ -38,7 +38,11 @@ export default function LoginPage() {
       await loginApi(email, password);
       const me = await getCurrentUserApi();
       setUser(me);
-      router.push("/dashboard");
+
+      const next = new URLSearchParams(window.location.search).get("next");
+      const destination =
+        next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+      router.push(destination);
       router.refresh();
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");

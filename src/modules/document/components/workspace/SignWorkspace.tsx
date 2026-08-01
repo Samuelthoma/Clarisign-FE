@@ -8,11 +8,14 @@ import { ArrowLeft, FileQuestion } from "lucide-react";
 import PanelLayout from "../panels/PanelLayout";
 import SignerActionPanel from "../panels/SignerActionPanel";
 import RightPanel from "../panels/RightPanel";
+import { toast } from "sonner";
 import {
   getDocumentFileApi,
+  getDocumentProgressApi,
   sendOtpSigningApi,
   verifyFaceIdentityApi,
   verifyOtpSigningApi,
+  type DocumentProgressResponse,
 } from "@/lib/api/DocumentApi";
 import { DraftField } from "../../types";
 
@@ -45,6 +48,9 @@ export default function SignWorkspace({ documentId }: Props) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [progress, setProgress] = useState<DocumentProgressResponse | null>(
+    null,
+  );
 
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState<SecurityStep>("otp");
@@ -89,6 +95,15 @@ export default function SignWorkspace({ documentId }: Props) {
     };
   }, [documentId]);
 
+  useEffect(() => {
+    getDocumentProgressApi(documentId)
+      .then(setProgress)
+      .catch((err) => console.error("Failed to load signing progress", err));
+  }, [documentId]);
+
+  const isMyTurn = progress?.you?.yourTurn === true;
+  const currentSignerEmail = progress?.currentSignerEmail ?? null;
+
   const handleNavigateToField = (field: DraftField) => {
     if (currentPage !== field.page) {
       setCurrentPage(field.page);
@@ -118,15 +133,27 @@ export default function SignWorkspace({ documentId }: Props) {
   };
 
   const handleInitiateCompletion = async () => {
+    if (!isMyTurn) {
+      toast.error(
+        currentSignerEmail
+          ? `It's not your turn yet — waiting for ${currentSignerEmail} to sign.`
+          : "It's not your turn to sign yet.",
+      );
+      return;
+    }
+
     setLivenessError(undefined);
     setOtpError(undefined);
     setCurrentStep("otp");
-    setIsSecurityModalOpen(true);
 
     try {
+
       await sendOtpSigningApi(documentId);
-    } catch (error) {
-      setOtpError("Failed to send verification code. Please try again.");
+      setIsSecurityModalOpen(true);
+    } catch (error: any) {
+      toast.error(
+        error?.message || "Failed to send verification code. Please try again.",
+      );
     }
   };
 
@@ -234,6 +261,8 @@ export default function SignWorkspace({ documentId }: Props) {
               isRejectting={sign.isRejectting}
               isFinalizing={sign.isFinalizing}
               isOwner={isCurrentUserOwner}
+              isMyTurn={isMyTurn}
+              currentSignerEmail={currentSignerEmail}
             />
           }
           center={
@@ -257,9 +286,14 @@ export default function SignWorkspace({ documentId }: Props) {
                           signer={signer}
                           scale={scale}
                           mode={
-                            field.signerId === sign.currentSignerId
+                            field.signerId === sign.currentSignerId && isMyTurn
                               ? "sign"
                               : "view"
+                          }
+                          locked={
+                            field.signerId === sign.currentSignerId &&
+                            !isMyTurn &&
+                            field.status !== "ACTIVE"
                           }
                           onSignClick={sign.openSignModal}
                           signatureValue={sign.signatures[field.id] || null}

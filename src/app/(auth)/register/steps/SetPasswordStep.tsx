@@ -18,9 +18,11 @@ export default function PasswordSetupStep({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isLengthValid = password.length >= 8;
-  // Mirror the backend policy: at least one lowercase, one uppercase, one digit.
   const hasComplexity =
-    /[a-z]/.test(password) && /[A-Z]/.test(password) && /\d/.test(password);
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password);
   const isPasswordValid = isLengthValid && hasComplexity;
   const passwordsMatch = password === confirmPassword;
 
@@ -46,7 +48,7 @@ export default function PasswordSetupStep({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isSubmitting}
-              placeholder="Min 8 chars: upper, lower & number"
+              placeholder="Min 8 chars: upper, lower, number & symbol"
               className="
                 w-full
                 px-3 py-2
@@ -80,7 +82,7 @@ export default function PasswordSetupStep({
           {password && !isPasswordValid && (
             <p className="text-xs text-muted-foreground mt-1.5">
               Password must be at least 8 characters and include an uppercase
-              letter, a lowercase letter, and a number.
+              letter, a lowercase letter, a number, and a special character.
             </p>
           )}
         </div>

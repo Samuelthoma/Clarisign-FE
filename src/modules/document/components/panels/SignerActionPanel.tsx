@@ -35,6 +35,8 @@ interface SignerActionPanelProps {
   isFinalizing?: boolean;
   isSubmitting?: boolean;
   isRejectting?: boolean;
+  isMyTurn?: boolean;
+  currentSignerEmail?: string | null;
 }
 
 export default function SignerActionPanel({
@@ -49,6 +51,8 @@ export default function SignerActionPanel({
   isSubmitting = false,
   isRejectting = false,
   isFinalizing = false,
+  isMyTurn = true,
+  currentSignerEmail = null,
 }: SignerActionPanelProps) {
   const assignedFields = fields.filter(
     (field) => field.signerId === currentSignerId,
@@ -144,38 +148,57 @@ export default function SignerActionPanel({
       <div className="pt-5 border-t border-slate-200 mt-auto space-y-3">
         {showSignRejectButtons && (
           <>
-            <button
-              onClick={onComplete}
-              disabled={isProcessing || !isAllCompletedLocally}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
-                ${
-                  isAllCompletedLocally && !isProcessing
-                    ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }
-              `}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing...
-                </>
-              ) : (
-                <>
-                  <Check size={16} strokeWidth={2.5} />
-                  Sign Document
-                </>
-              )}
-            </button>
+            {isMyTurn ? (
+              <button
+                onClick={onComplete}
+                disabled={isProcessing || !isAllCompletedLocally}
+                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
+                  ${
+                    isAllCompletedLocally && !isProcessing
+                      ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"
+                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  }
+                `}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing...
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} strokeWidth={2.5} />
+                    Sign Document
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="w-full rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-800 text-center">
+                It's not your turn yet
+                {currentSignerEmail ? (
+                  <>
+                    {" "}
+                    — waiting for{" "}
+                    <span className="font-semibold">{currentSignerEmail}</span>
+                  </>
+                ) : null}
+                .
+              </div>
+            )}
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button
-                  disabled={isProcessing}
+                  disabled={isProcessing || !isMyTurn}
+                  title={
+                    !isMyTurn
+                      ? "You can only reject when it's your turn to sign"
+                      : undefined
+                  }
                   className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
                     ${
-                      isProcessing
-                        ? "text-rose-400 bg-rose-50 cursor-not-allowed"
+                      isProcessing || !isMyTurn
+                        ? "text-rose-400 bg-rose-50 cursor-not-allowed opacity-60"
                         : "text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700"
                     }
                   `}

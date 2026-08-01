@@ -1,7 +1,7 @@
 "use client";
 
 import { DraftField, Signer } from "../../types";
-import { ImageUpscale, PenLine, X } from "lucide-react";
+import { ImageUpscale, PenLine, X, Lock } from "lucide-react";
 
 interface FieldBoxProps {
   field: DraftField;
@@ -20,6 +20,7 @@ interface FieldBoxProps {
   onSignClick?: (field: DraftField) => void;
   signatureValue?: string | null;
   canEdit?: Boolean
+  locked?: boolean;
 }
 
 export default function FieldBox({
@@ -33,7 +34,7 @@ export default function FieldBox({
   onRemove,
   onSignClick,
   signatureValue,
-  
+  locked = false,
 }: FieldBoxProps) {
   const borderColor = signer?.color ?? "#2563eb";
   const isDraftMode = mode === "draft" && canEdit;
@@ -41,6 +42,7 @@ export default function FieldBox({
   const isSigned = field.status === "ACTIVE";
 
   const getCursorStyle = () => {
+    if (locked) return "cursor-not-allowed";
     if (isDraftMode) return "cursor-move";
     if (isSignMode) return "cursor-pointer hover:shadow-md hover:ring-2";
     return "cursor-default";
@@ -56,12 +58,14 @@ export default function FieldBox({
         }
       }}
       onClick={(e) => {
-        if (isSignMode && onSignClick && !isSigned) {
+        if (isSignMode && onSignClick && !isSigned && !locked) {
           e.stopPropagation();
           onSignClick(field);
         }
       }}
-      className={`absolute rounded-md z-20 group transition-opacity duration-200 ${getCursorStyle()}`}
+      className={`absolute rounded-md z-20 group transition-opacity duration-200 ${
+        locked ? "opacity-70" : ""
+      } ${getCursorStyle()}`}
       style={{
         left: field.x * scale,
         top: field.y * scale,
@@ -135,6 +139,15 @@ export default function FieldBox({
             <X size={12} />
           </button>
         </>
+      )}
+
+      {locked && (
+        <div
+          title="Not your turn yet"
+          className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white text-slate-500 border border-slate-200 shadow-sm z-30"
+        >
+          <Lock size={11} />
+        </div>
       )}
     </div>
   );
