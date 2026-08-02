@@ -91,6 +91,8 @@ export function useSignWorkspace(documentId: string) {
 
       await signDocumentApi(documentId, payload);
       toast.success("Document has been signed!");
+
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       window.location.href = `/document/${documentId}`;
     } catch (error: any) {
       let errorMessage = "Failed to sign document";
@@ -139,6 +141,8 @@ export function useSignWorkspace(documentId: string) {
     try {
       await finalizeDocumentApi(documentId);
       toast.success("Document has been finalized");
+
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       window.location.href = `/document/${documentId}`;
     } catch (err: any) {
       console.error(err);

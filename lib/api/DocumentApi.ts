@@ -81,13 +81,24 @@ export const getDocumentProgressApi = async (
 };
 
 export const getDocumentFileApi = async (documentId: string) => {
-  const blob = await apiFetch(`/api/v1/documents/${documentId}`, {
-    method: "GET",
-    responseType: "blob",
-  });
-  const url = URL.createObjectURL(blob);
-
-  return { url };
+  let lastErr: any;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const blob = await apiFetch(`/api/v1/documents/${documentId}`, {
+        method: "GET",
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(blob);
+      return { url };
+    } catch (err: any) {
+      lastErr = err;
+      const status = err?.status ?? 0;
+      const transient = status === 0 || status >= 500;
+      if (!transient || attempt === 2) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 900));
+    }
+  }
+  throw lastErr;
 };
 
 export const downloadDocumentFileApi = async (documentId: string) => {

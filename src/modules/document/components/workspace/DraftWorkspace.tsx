@@ -78,6 +78,7 @@ export default function DraftWorkspace({ documentId }: Props) {
 
       toast.success("Document published successfully!");
 
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       window.location.href = `/document/${documentId}`;
     } catch (err: any) {
       console.error(err);
