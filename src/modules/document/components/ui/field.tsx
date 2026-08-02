@@ -1,7 +1,7 @@
 "use client";
 
 import { DraftField, Signer } from "../../types";
-import { ImageUpscale, PenLine, X, Lock } from "lucide-react";
+import { ImageUpscale, PenLine, X, Lock, Type } from "lucide-react";
 
 interface FieldBoxProps {
   field: DraftField;
@@ -109,9 +109,12 @@ export default function FieldBox({
           </div>
 
           <div className="flex items-center justify-between text-gray-500 text-[11px]">
+            {/* Small mode indicator so signers can tell a DRAWN box from a TYPED one. */}
             <div className="flex items-center gap-1">
-              <PenLine size={10} />
-              <span className="truncate">Signature</span>
+              {field.mode === "TYPED" ? <Type size={10} /> : <PenLine size={10} />}
+              <span className="truncate">
+                {field.mode === "TYPED" ? "Typed" : "Drawn"}
+              </span>
             </div>
           </div>
         </div>

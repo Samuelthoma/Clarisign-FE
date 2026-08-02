@@ -126,7 +126,7 @@ export default function DashboardHome() {
 
   const handleFileProcess = async (file: File) => {
     if (file.type !== "application/pdf") {
-      alert("Only PDF documents are allowed.");
+      toast.error("Only PDF documents are allowed.");
       return;
     }
 
@@ -135,11 +135,8 @@ export default function DashboardHome() {
       const res = await uploadDocumentApi(file);
       router.push(`/document/${res}`);
     } catch (err: any) {
-      toast(
-        "File size exceeds 10 MB. Please upload a file smaller than 10 MB.",
-        {
-          position: "top-right",
-        },
+      toast.error(
+        err?.message || "Failed to upload the document. Please try again.",
       );
       setLoading(false);
     }

@@ -35,13 +35,29 @@ export function useSignWorkspace(documentId: string) {
     setActiveSignField(null);
   };
 
-  const confirmSignature = (signatureData: string) => {
+  const confirmSignature = (signatureData: string, applyToAll: boolean = false) => {
     if (!activeSignField) return;
 
-    setSignatures((prev) => ({
-      ...prev,
-      [activeSignField.id]: signatureData,
-    }));
+    if (applyToAll) {
+      const targets = fields.filter(
+        (f) =>
+          f.signerId === currentSignerId &&
+          f.mode === activeSignField.mode &&
+          f.status !== "ACTIVE",
+      );
+      setSignatures((prev) => {
+        const next = { ...prev };
+        targets.forEach((f) => {
+          next[f.id] = signatureData;
+        });
+        return next;
+      });
+    } else {
+      setSignatures((prev) => ({
+        ...prev,
+        [activeSignField.id]: signatureData,
+      }));
+    }
 
     closeSignModal();
   };

@@ -126,7 +126,8 @@ export default function SignerActionPanel({
                         Signature {index + 1}
                       </div>
                       <div className="text-xs font-medium text-slate-500 mt-0.5">
-                        Page {field.page}
+                        Page {field.page} ·{" "}
+                        {field.mode === "TYPED" ? "Typed" : "Drawn"}
                       </div>
                     </div>
                   </div>

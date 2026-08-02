@@ -314,10 +314,27 @@ export default function SignWorkspace({ documentId }: Props) {
         mode={sign.activeSignField?.mode || "DRAWN"}
         onClose={sign.closeSignModal}
         onConfirm={sign.confirmSignature}
+        applicableCount={
+          sign.activeSignField
+            ? sign.fields.filter(
+                (f: DraftField) =>
+                  f.signerId === sign.currentSignerId &&
+                  f.mode === sign.activeSignField!.mode &&
+                  f.status !== "ACTIVE",
+              ).length
+            : 0
+        }
       />
 
       <Dialog open={isSecurityModalOpen} onOpenChange={setIsSecurityModalOpen}>
-        <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden bg-white p-6">
+        <DialogContent
+          className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden bg-white p-6"
+          // Mid-verification (OTP sent, camera running) an accidental click outside or
+          // ESC must NOT dismiss the flow — only the X button closes this dialog.
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogTitle className="sr-only">Verify Identity</DialogTitle>
           <DialogDescription className="sr-only">
             Please complete the multi-step security checks to verify your
