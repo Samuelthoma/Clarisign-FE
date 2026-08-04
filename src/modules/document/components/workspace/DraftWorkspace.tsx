@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PanelLayout from "../panels/PanelLayout";
 import DraftToolsPanel from "../panels/DraftToolsPanel";
+import FieldOrderPanel from "../panels/FieldOrderPanel";
 import RightPanel from "../panels/RightPanel";
 import {
   getDocumentFileApi,
@@ -42,11 +43,9 @@ export default function DraftWorkspace({ documentId }: Props) {
 
   const onSaveDraft = async () => {
     try {
-      const signerOrders = Array.from(
-        new Set(draft.fields.map((f) => f.signerId)),
-      ).map((signerId, index) => ({
-        userId: signerId!,
-        order: index + 1,
+      const signerOrders = draft.signers.map((s) => ({
+        userId: s.id,
+        order: s.order,
       }));
 
       const payload = {
@@ -154,13 +153,28 @@ export default function DraftWorkspace({ documentId }: Props) {
         <PanelLayout
           left={
             isCurrentUserOwner ? (
-              <DraftToolsPanel
-                activeTool={activeTool}
-                setActiveTool={setActiveTool}
-                onSaveDraft={onSaveDraft}
-                onPublishDraft={onPublishDraft}
-                isPublishing={publishing}
-              />
+              <div className="flex flex-col h-full">
+                <DraftToolsPanel
+                  activeTool={activeTool}
+                  setActiveTool={setActiveTool}
+                  onSaveDraft={onSaveDraft}
+                  onPublishDraft={onPublishDraft}
+                  isPublishing={publishing}
+                  middleContent={
+                    draft.fields.length > 0 ? (
+                      <>
+                        <hr className="border-gray-200 my-4" />
+                        <FieldOrderPanel
+                          fields={draft.fields}
+                          signers={draft.signers}
+                          onReorder={draft.reorderSigners}
+                          canEdit={isCurrentUserOwner}
+                        />
+                      </>
+                    ) : undefined
+                  }
+                />
+              </div>
             ) : (
               <div className="flex flex-col h-full bg-gray-50 border-r items-center justify-center p-6 text-center text-gray-500">
                 <p className="text-sm font-semibold text-gray-700 mb-1">
