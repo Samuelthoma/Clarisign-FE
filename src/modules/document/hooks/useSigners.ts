@@ -37,17 +37,22 @@ export function useSigners(documentId: string) {
         color: generateColor(0),
       };
 
-      const collaborators: Signer[] = data.collaborators.map(
-        (c: any, index: number) => ({
+      const collaborators: Signer[] = data.collaborators
+        .map((c: any) => ({
           id: c.id,
           name: c.name,
           email: c.email,
-          order: c.signOrder ?? index + 1,
+          order: c.signOrder ?? Number.MAX_SAFE_INTEGER,
           status: c.hasSigned ? "SIGNED" : "DRAFT",
-          color: generateColor(index + 1),
+          color: "",
           isOwner: false,
-        }),
-      );
+        }))
+        .sort((a: any, b: any) => a.order - b.order)
+        .map((c: any, index: any) => ({
+          ...c,
+          order: index + 1,
+          color: generateColor(index + 1),
+        }));
 
       setSigners(normalizeSignerOrder([owner, ...collaborators]));
     } catch (error) {
@@ -56,7 +61,6 @@ export function useSigners(documentId: string) {
       setIsLoading(false);
     }
 
-    console.log(signers);
   };
 
   useEffect(() => {

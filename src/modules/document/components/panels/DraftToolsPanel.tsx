@@ -28,6 +28,7 @@ interface DraftToolsPanelProps {
   ) => void;
   onSaveDraft: () => void;
   onPublishDraft: () => void;
+  middleContent?: React.ReactNode;
 }
 
 export default function DraftToolsPanel({
@@ -35,7 +36,8 @@ export default function DraftToolsPanel({
   setActiveTool,
   onSaveDraft,
   onPublishDraft,
-  isPublishing
+  isPublishing,
+  middleContent,
 }: DraftToolsPanelProps) {
   const handleDragStart = (
     e: React.DragEvent<HTMLButtonElement>,
@@ -104,6 +106,8 @@ export default function DraftToolsPanel({
           </button>
         </div>
       </div>
+
+      {middleContent}
 
       <div className="pt-6 border-t border-gray-100 mt-auto">
         <button
