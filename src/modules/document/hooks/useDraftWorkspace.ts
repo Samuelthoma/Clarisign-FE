@@ -111,6 +111,8 @@ export function useDraftWorkspace(documentId: string) {
   const confirmSignatureField = (signerId: string) => {
     if (!pendingPosition) return;
 
+    const isNewHolder = !fields.some((f) => f.signerId === signerId);
+
     createField(
       pendingPosition.x,
       pendingPosition.y,
@@ -118,6 +120,13 @@ export function useDraftWorkspace(documentId: string) {
       signerId,
       pendingPosition.mode,
     );
+
+    if (isNewHolder) {
+      const target = signers.find((s) => s.id === signerId);
+      if (target) {
+        reorderSigners([...signers.filter((s) => s.id !== signerId), target]);
+      }
+    }
 
     setPendingPosition(null);
     setIsAssignmentModalOpen(false);

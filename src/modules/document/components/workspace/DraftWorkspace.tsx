@@ -43,10 +43,15 @@ export default function DraftWorkspace({ documentId }: Props) {
 
   const onSaveDraft = async () => {
     try {
-      const signerOrders = draft.signers.map((s) => ({
-        userId: s.id,
-        order: s.order,
-      }));
+      const boxHolderIds = new Set(
+        draft.fields.map((f) => f.signerId).filter(Boolean),
+      );
+      const signerOrders = draft.signers
+        .filter((s) => boxHolderIds.has(s.id))
+        .map((s, index) => ({
+          userId: s.id,
+          order: index + 1,
+        }));
 
       const payload = {
         layoutItems: draft.fields.map((field) => ({
