@@ -66,7 +66,9 @@ export default function Workspace() {
     return <DraftWorkspace documentId={documentId} />;
   }
 
-  if (status === "PENDING") {
+  if (status === "PENDING" || status === "WAITING_FINALIZE") {
+    // WAITING_FINALIZE reuses the sign workspace: everything is signed, so signers just
+    // see the completed boxes while the owner gets the Finalize button.
     return <SignWorkspace documentId={documentId} />;
   }
 

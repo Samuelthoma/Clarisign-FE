@@ -149,6 +149,12 @@ export default function DocumentExplorerComponent() {
                     <span>Pending</span>
                   </div>
                 </SelectItem>
+                <SelectItem value="WAITING_FINALIZE">
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-violet-500" />
+                    <span>Awaiting Finalize</span>
+                  </div>
+                </SelectItem>
                 <SelectItem value="FINALIZED">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 size={14} className="text-emerald-500" />
@@ -192,11 +198,13 @@ export default function DocumentExplorerComponent() {
                       ? "No drafts found"
                       : statusFilter === "PENDING"
                         ? "No pending documents"
-                        : statusFilter === "FINALIZED"
-                          ? "No finalized documents"
-                          : statusFilter === "REVOKED"
-                            ? "No revoked documents"
-                            : "No documents found"}
+                        : statusFilter === "WAITING_FINALIZE"
+                          ? "No documents awaiting finalization"
+                          : statusFilter === "FINALIZED"
+                            ? "No finalized documents"
+                            : statusFilter === "REVOKED"
+                              ? "No revoked documents"
+                              : "No documents found"}
                 </p>
                 <p className="text-sm text-slate-500 mt-1 text-center max-w-xs">
                   {debouncedQuery
@@ -205,11 +213,13 @@ export default function DocumentExplorerComponent() {
                       ? "You don't have any unfinished signing requests."
                       : statusFilter === "PENDING"
                         ? "You don't have any documents waiting for signatures."
-                        : statusFilter === "FINALIZED"
-                          ? "None of your documents have been fully signed yet."
-                          : statusFilter === "REVOKED"
-                            ? "You don't have any cancelled or revoked documents."
-                            : "Upload a PDF above to create your first signing request."}
+                        : statusFilter === "WAITING_FINALIZE"
+                          ? "No fully signed documents are waiting to be finalized."
+                          : statusFilter === "FINALIZED"
+                            ? "None of your documents have been fully signed yet."
+                            : statusFilter === "REVOKED"
+                              ? "You don't have any cancelled or revoked documents."
+                              : "Upload a PDF above to create your first signing request."}
                 </p>
               </div>
             ) : (

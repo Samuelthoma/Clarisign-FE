@@ -39,6 +39,12 @@ export const StatusBadge = ({ status }: any) => {
         Icon: FileEdit,
       };
       break;
+    case "waiting_finalize":
+      config = {
+        classes: "bg-violet-50 text-violet-700 ring-violet-600/20",
+        Icon: CircleDot,
+      };
+      break;
   }
 
   const { classes, Icon } = config;
@@ -48,7 +54,7 @@ export const StatusBadge = ({ status }: any) => {
       className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full font-bold ring-1 ring-inset uppercase tracking-wider ${classes}`}
     >
       <Icon size={12} strokeWidth={2.5} />
-      {status}
+      {String(status || "").replace(/_/g, " ")}
     </span>
   );
 };
