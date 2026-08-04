@@ -288,6 +288,13 @@ export default function DashboardHome() {
                 </div>
               </SelectItem>
 
+              <SelectItem value="WAITING_FINALIZE">
+                <div className="flex items-center gap-2">
+                  <Clock size={14} className="text-violet-500" />
+                  <span>Awaiting Finalize</span>
+                </div>
+              </SelectItem>
+
               <SelectItem value="FINALIZED">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-emerald-500" />
@@ -325,6 +332,8 @@ export default function DashboardHome() {
               <p className="text-sm font-semibold text-slate-800">
                 {statusFilter === "DRAFT" && "No drafts found"}
                 {statusFilter === "PENDING" && "No pending documents"}
+                {statusFilter === "WAITING_FINALIZE" &&
+                  "No documents awaiting finalization"}
                 {statusFilter === "FINALIZED" && "No finalized documents"}
                 {statusFilter === "REVOKED" && "No revoked documents"}
                 {statusFilter === "ALL" && "No recent documents"}
@@ -334,6 +343,8 @@ export default function DashboardHome() {
                   "You don't have any unfinished signing requests."}
                 {statusFilter === "PENDING" &&
                   "You don't have any documents waiting for signatures."}
+                {statusFilter === "WAITING_FINALIZE" &&
+                  "No fully signed documents are waiting to be finalized."}
                 {statusFilter === "FINALIZED" &&
                   "None of your documents have been fully signed yet."}
                 {statusFilter === "REVOKED" &&
