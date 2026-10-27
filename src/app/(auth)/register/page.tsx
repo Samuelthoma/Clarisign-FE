@@ -74,9 +74,11 @@ function readRegistration(): {
   return null;
 }
 
+const SHOW_DEV_TOOLS = process.env.NODE_ENV === "development";
+
 export default function RegisterPage() {
   const router = useRouter();
-  const [devMode, setDevMode] = useState(true);
+  const [devMode, setDevMode] = useState(SHOW_DEV_TOOLS);
   const [currentStep, setCurrentStep] = useState(0);
 
   const [registerData, setRegisterData] = useState<RegisterDataState>({
@@ -374,7 +376,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {devMode && (
+      {SHOW_DEV_TOOLS && devMode && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-col">
           <span>Development Only Navigation Bar:</span>
 
@@ -408,7 +410,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {!devMode && (
+      {SHOW_DEV_TOOLS && !devMode && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-col">
           <button
             type="button"

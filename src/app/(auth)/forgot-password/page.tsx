@@ -20,10 +20,12 @@ interface ForgotPasswordState {
   resetToken: string;
 }
 
+const SHOW_DEV_TOOLS = process.env.NODE_ENV === "development";
+
 export default function ForgotPasswordPage() {
   const router = useRouter();
 
-  const [devMode, setDevMode] = useState(true);
+  const [devMode, setDevMode] = useState(SHOW_DEV_TOOLS);
   const [currentStep, setCurrentStep] = useState(0);
 
   const [forgotPasswordData, setForgotPasswordData] =
@@ -144,7 +146,7 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
 
-      {devMode && (
+      {SHOW_DEV_TOOLS && devMode && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-col">
           <span>Development Only Navigation Bar:</span>
 
@@ -178,7 +180,7 @@ export default function ForgotPasswordPage() {
         </div>
       )}
 
-      {!devMode && (
+      {SHOW_DEV_TOOLS && !devMode && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <button
             type="button"
